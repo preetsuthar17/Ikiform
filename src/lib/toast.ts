@@ -11,7 +11,7 @@ export const showToast = {
       loading: string;
       success: string | ((data: T) => string);
       error: string | ((error: any) => string);
-    }
+    },
   ) => toast.promise(promise, messages),
   dismiss: (toastId?: string) => toast.dismiss(toastId),
 };
@@ -23,5 +23,6 @@ export const waitlistToasts = {
   alreadyJoined: () => showToast.error("You're already on our waitlist!"),
   invalidEmail: () => showToast.error("Please enter a valid email address"),
   networkError: () => showToast.error("Connection failed. Please try again."),
-  unknownError: () => showToast.error("Something went wrong. Please try again."),
+  unknownError: () =>
+    showToast.error("Something went wrong. Please try again."),
 };

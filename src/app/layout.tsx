@@ -3,6 +3,7 @@ import { DM_Sans, Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import { Toaster } from "react-hot-toast";
+import Footer from "@/components/Footer";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -116,8 +117,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.variable} ${dm_sans.variable} antialiased`}>
         <Navbar />
-        {children}
+        <main className="min-h-screen">{children}</main>
         <Toaster position="top-center" />
+        <Footer />
       </body>
     </html>
   );

@@ -11,7 +11,7 @@ const Hero = () => {
   const [loading, setLoading] = useState(false);
   const [waitlistCount, setWaitlistCount] = useState<number>(0);
   const [countLoading, setCountLoading] = useState(true);
-  // Fetch waitlist count on component mount
+
   useEffect(() => {
     const fetchCount = async () => {
       try {
@@ -19,7 +19,6 @@ const Hero = () => {
         setWaitlistCount(result.count);
       } catch (error) {
         console.error("Failed to fetch waitlist count:", error);
-        // Silently fail for count loading - don't show toast for this
       } finally {
         setCountLoading(false);
       }
@@ -29,14 +28,12 @@ const Hero = () => {
   }, []);
 
   const triggerConfetti = () => {
-    // Create a burst of confetti from the center
     confetti({
       particleCount: 100,
       spread: 70,
       origin: { y: 0.6 },
     });
 
-    // Add a second burst with different colors
     setTimeout(() => {
       confetti({
         particleCount: 50,
@@ -55,6 +52,7 @@ const Hero = () => {
       });
     }, 400);
   };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -63,7 +61,6 @@ const Hero = () => {
       return;
     }
 
-    // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       waitlistToasts.invalidEmail();
@@ -76,22 +73,20 @@ const Hero = () => {
       const result = await waitlistService.addToWaitlist(email);
 
       if (result.success) {
-        setEmail(""); // Clear email on success
-        triggerConfetti(); // 🎉 Trigger confetti animation
+        setEmail("");
+        triggerConfetti();
         waitlistToasts.success(result.message);
 
-        // Update waitlist count
         const countResult = await waitlistService.getWaitlistCount();
         setWaitlistCount(countResult.count);
       } else {
-        // Handle specific error cases
         if (result.message.includes("already")) {
           waitlistToasts.alreadyJoined();
         } else {
           waitlistToasts.unknownError();
         }
       }
-    } catch (error) {
+    } catch {
       waitlistToasts.networkError();
     } finally {
       setLoading(false);
@@ -99,59 +94,55 @@ const Hero = () => {
   };
 
   return (
-    <>
-      <section className="flex items-center justify-center text-center flex-col max-w-6xl w-[95%] mx-auto py-12 gap-5">
-        <h1 className="text-4xl md:text-5xl font-dm-sans font-medium text-center mt-10 flex flex-col gap-3 max-w-4xl">
-          Beautiful, budget-friendly forms without compromises
-        </h1>
-        <p className="text-gray-600 max-w-2xl">
-          Ikiform is an open-source alternative to Typeform and Google Forms,
-          designed to help you create beautiful forms effortlessly.
-        </p>
-        {/* Waitlist Form */}
-        <div className="w-full max-w-md mt-8">
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            {" "}
-            <div className="flex flex-col sm:flex-row gap-3 text-sm">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
-                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:border-transparent"
-                disabled={loading}
-                required
-              />
-              <button
-                type="submit"
-                disabled={loading}
-                className="px-6 py-3 bg-zinc-900 text-white rounded-lg font-medium hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {loading ? "Joining..." : "Join Waitlist"}
-              </button>
-            </div>
-          </form>
-          {/* show count of people joined waitlist */}{" "}
-          {!countLoading && (
-            <p className="mt-4 text-gray-500 text-sm">
-              {waitlistCount.toLocaleString()} people have already joined the
-              waitlist!
-            </p>
-          )}
-        </div>
+    <section className="flex flex-col items-center justify-center text-center max-w-6xl w-[95%] mx-auto py-12 gap-5">
+      <h1 className="text-4xl md:text-5xl font-dm-sans font-medium mt-10 flex flex-col gap-3 max-w-4xl">
+        Beautiful, budget-friendly forms without compromises
+      </h1>
+      <p className="text-gray-600 max-w-2xl">
+        Ikiform is an open-source alternative to Typeform and Google Forms,
+        designed to help you create beautiful forms effortlessly.
+      </p>
 
-        {/* Hero Image */}
-        <div className="w-full mt-16">
-          <div className="relative">
-            <img
-              src="/hero/hero-image.png"
-              alt="Ikiform Dashboard Preview"
-              className="object-cover w-full h-full border border-gray-300 rounded-2xl shadow-2xl/10"
+      <div className="w-full max-w-md mt-8">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row gap-3 text-sm">
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your email"
+              className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:border-transparent"
+              disabled={loading}
+              required
             />
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-6 py-3 bg-zinc-900 text-white rounded-lg font-medium hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {loading ? "Joining..." : "Join Waitlist"}
+            </button>
           </div>
+        </form>
+
+        {!countLoading && (
+          <p className="mt-4 text-gray-500 text-sm">
+            {waitlistCount.toLocaleString()} people have already joined the
+            waitlist!
+          </p>
+        )}
+      </div>
+
+      <div className="w-full mt-16">
+        <div className="relative">
+          <img
+            src="/hero/hero-image.png"
+            alt="Ikiform Dashboard Preview"
+            className="object-cover w-full h-full border border-gray-300 rounded-2xl shadow-2xl/10"
+          />
         </div>
-      </section>
-    </>
+      </div>
+    </section>
   );
 };
 

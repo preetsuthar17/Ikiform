@@ -1,6 +1,6 @@
 import toast from "react-hot-toast";
 
-// Utility functions for common toast patterns
+// Common toast utility functions
 export const showToast = {
   success: (message: string) => toast.success(message),
   error: (message: string) => toast.error(message),
@@ -16,13 +16,12 @@ export const showToast = {
   dismiss: (toastId?: string) => toast.dismiss(toastId),
 };
 
-// Waitlist specific toasts
+// Predefined waitlist-related toasts
 export const waitlistToasts = {
   success: (message: string = "Welcome to the waitlist! 🎉") =>
     showToast.success(message),
   alreadyJoined: () => showToast.error("You're already on our waitlist!"),
   invalidEmail: () => showToast.error("Please enter a valid email address"),
   networkError: () => showToast.error("Connection failed. Please try again."),
-  unknownError: () =>
-    showToast.error("Something went wrong. Please try again."),
+  unknownError: () => showToast.error("Something went wrong. Please try again."),
 };

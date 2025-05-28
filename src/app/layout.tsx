@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import { Toaster } from "react-hot-toast";
 import Footer from "@/components/Footer";
 
+// Load Google Fonts with CSS variables
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
@@ -15,6 +16,7 @@ const dm_sans = DM_Sans({
   subsets: ["latin"],
 });
 
+// Metadata for SEO, social sharing, and PWA
 export const metadata: Metadata = {
   title: {
     default: "Ikiform",
@@ -74,18 +76,9 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: [
-      { url: "/favicon.ico" },
-      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
-      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
-    ],
-    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
+    icon: [{ url: "/favicon.ico" }],
   },
-  manifest: "/manifest.json",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#000000" },
-  ],
+  themeColor: [{ media: "(prefers-color-scheme: light)", color: "#ffffff" }],
   viewport: "width=device-width, initial-scale=1, maximum-scale=5",
   keywords: [
     "form builder",

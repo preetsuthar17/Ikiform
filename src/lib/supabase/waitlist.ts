@@ -5,19 +5,19 @@ export type WaitlistEntry = Database["public"]["Tables"]["waitlist"]["Row"];
 export type WaitlistInsert = Database["public"]["Tables"]["waitlist"]["Insert"];
 
 export const waitlistService = {
+  // Add a new email to the waitlist
   async addToWaitlist(
     email: string
   ): Promise<{ success: boolean; message: string; data?: WaitlistEntry }> {
     try {
-      // Check if email already exists
       const { data: existingEmail, error: checkError } = await supabase
         .from("waitlist")
         .select("email")
         .eq("email", email)
         .single();
 
+      // Ignore "not found" error (PGRST116), treat others as actual errors
       if (checkError && checkError.code !== "PGRST116") {
-        // PGRST116 is "not found" error, which is expected when email doesn't exist
         throw checkError;
       }
 
@@ -28,7 +28,6 @@ export const waitlistService = {
         };
       }
 
-      // Add email to waitlist
       const { data, error } = await supabase
         .from("waitlist")
         .insert([{ email }])
@@ -53,6 +52,7 @@ export const waitlistService = {
     }
   },
 
+  // Get the total number of waitlist entries
   async getWaitlistCount(): Promise<{ count: number; error?: string }> {
     try {
       const { count, error } = await supabase

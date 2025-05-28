@@ -1,14 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { waitlistService } from "../lib/supabase/waitlist";
 import confetti from "canvas-confetti";
+import { waitlistToasts } from "../lib/toast";
 
 const Hero = () => {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
-  const [isSuccess, setIsSuccess] = useState(false);
+  const [waitlistCount, setWaitlistCount] = useState<number>(0);
+  const [countLoading, setCountLoading] = useState(true);
+  // Fetch waitlist count on component mount
+  useEffect(() => {
+    const fetchCount = async () => {
+      try {
+        const result = await waitlistService.getWaitlistCount();
+        setWaitlistCount(result.count);
+      } catch (error) {
+        console.error("Failed to fetch waitlist count:", error);
+        // Silently fail for count loading - don't show toast for this
+      } finally {
+        setCountLoading(false);
+      }
+    };
+
+    fetchCount();
+  }, []);
 
   const triggerConfetti = () => {
     // Create a burst of confetti from the center
@@ -37,39 +54,44 @@ const Hero = () => {
       });
     }, 400);
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!email.trim()) {
-      setMessage("Please enter a valid email address");
-      setIsSuccess(false);
+      waitlistToasts.invalidEmail();
       return;
     }
 
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      setMessage("Please enter a valid email address");
-      setIsSuccess(false);
+      waitlistToasts.invalidEmail();
       return;
     }
 
     setLoading(true);
-    setMessage("");
 
     try {
       const result = await waitlistService.addToWaitlist(email);
-      setMessage(result.message);
-      setIsSuccess(result.success);
 
       if (result.success) {
         setEmail(""); // Clear email on success
         triggerConfetti(); // 🎉 Trigger confetti animation
+        waitlistToasts.success(result.message);
+
+        // Update waitlist count
+        const countResult = await waitlistService.getWaitlistCount();
+        setWaitlistCount(countResult.count);
+      } else {
+        // Handle specific error cases
+        if (result.message.includes("already")) {
+          waitlistToasts.alreadyJoined();
+        } else {
+          waitlistToasts.unknownError();
+        }
       }
     } catch (error) {
-      setMessage("Something went wrong. Please try again.");
-      setIsSuccess(false);
+      waitlistToasts.networkError();
     } finally {
       setLoading(false);
     }
@@ -81,15 +103,15 @@ const Hero = () => {
         <h1 className="text-4xl md:text-6xl font-dm-sans font-medium text-center mt-10 flex flex-col gap-3">
           <span>Beyond just forms.</span>
           <span>Beautiful forms at your fingertips.</span>
-        </h1>
+        </h1>{" "}
         <p className="text-lg text-gray-600 max-w-2xl">
           Ikiform is an open-source alternative to Typeform and Google Forms,
           designed to help you create beautiful forms effortlessly.
         </p>
-
         {/* Waitlist Form */}
         <div className="w-full max-w-md mt-8">
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            {" "}
             <div className="flex flex-col sm:flex-row gap-3">
               <input
                 type="email"
@@ -108,15 +130,6 @@ const Hero = () => {
                 {loading ? "Joining..." : "Join Waitlist"}
               </button>
             </div>
-            {message && (
-              <p
-                className={`text-sm ${
-                  isSuccess ? "text-green-600" : "text-red-600"
-                }`}
-              >
-                {message}
-              </p>
-            )}
           </form>
         </div>
       </section>

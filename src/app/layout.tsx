@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
 import { DM_Sans, Inter } from "next/font/google";
+
 import "./globals.css";
+
 import Navbar from "@/components/Navbar";
-import { Toaster } from "react-hot-toast";
 import Footer from "@/components/Footer";
+
+import { Toaster } from "react-hot-toast";
+
+import { GoogleAnalytics } from "@next/third-parties/google";
 
 // Load Google Fonts with CSS variables
 const inter = Inter({
@@ -114,6 +119,7 @@ export default function RootLayout({
         <Toaster position="top-center" />
         <Footer />
       </body>
+      <GoogleAnalytics gaId="G-35M26ZHKNE" />
     </html>
   );
 }

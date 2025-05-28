@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { DM_Sans, Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
+import { Toaster } from "react-hot-toast";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -116,6 +117,7 @@ export default function RootLayout({
       <body className={`${inter.variable} ${dm_sans.variable} antialiased`}>
         <Navbar />
         {children}
+        <Toaster position="top-center" />
       </body>
     </html>
   );

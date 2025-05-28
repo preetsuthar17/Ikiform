@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { waitlistService } from "../lib/supabase/waitlist";
 import confetti from "canvas-confetti";
 import { waitlistToasts } from "../lib/toast";
+import Image from "next/image";
 
 const Hero = () => {
   const [email, setEmail] = useState("");
@@ -130,13 +131,24 @@ const Hero = () => {
               </button>
             </div>
           </form>
-          {/* show count of people joined waitlist */}
+          {/* show count of people joined waitlist */}{" "}
           {!countLoading && (
             <p className="mt-4 text-gray-500 text-sm">
               {waitlistCount.toLocaleString()} people have already joined the
               waitlist!
             </p>
           )}
+        </div>
+
+        {/* Hero Image */}
+        <div className="w-full mt-16">
+          <div className="relative">
+            <img
+              src="/hero/hero-image.png"
+              alt="Ikiform Dashboard Preview"
+              className="object-cover w-full h-full border border-gray-300 rounded-2xl shadow-2xl/10"
+            />
+          </div>
         </div>
       </section>
     </>

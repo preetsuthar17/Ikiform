@@ -52,4 +52,21 @@ export const waitlistService = {
       };
     }
   },
+
+  async getWaitlistCount(): Promise<{ count: number; error?: string }> {
+    try {
+      const { count, error } = await supabase
+        .from("waitlist")
+        .select("*", { count: "exact", head: true });
+
+      if (error) {
+        throw error;
+      }
+
+      return { count: count || 0 };
+    } catch (error) {
+      console.error("Error getting waitlist count:", error);
+      return { count: 0, error: "Failed to load count" };
+    }
+  },
 };

@@ -17,31 +17,6 @@ I want to create an open-source form-building web application called **Ikiform**
 
 ---
 
-## 📁 Project Structure
-
-```plaintext
-project-root/
-├── frontend/                # Front-end code (Next.js)
-│   ├── components/          # Reusable UI components (ShadCN UI)
-│   ├── pages/               # Next.js routes
-│   ├── styles/              # Tailwind CSS styles and configs
-│   ├── public/              # Static assets (e.g. images, fonts)
-│   ├── utils/               # Helper functions, hooks, and context
-│   ├── package.json         # Front-end dependencies
-│   └── next.config.js       # Next.js configuration
-├── backend/                 # Back-end code (Supabase)
-│   ├── functions/           # Supabase edge functions (if used)
-│   ├── migrations/          # DB migrations
-│   ├── seeds/               # Seed scripts for demo/test data
-│   ├── supabase/            # Supabase project setup/config
-│   ├── .env                 # Environment variables
-│   └── package.json         # Dev tools / dependencies (optional)
-├── README.md                # Documentation
-└── LICENSE                  # Open-source license
-```
-
----
-
 ## 🔧 Frontend Requirements
 
 - Built with **Next.js (App Router or Pages Router)**.

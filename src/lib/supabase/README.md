@@ -9,7 +9,7 @@
 
 Create a `.env.local` file in the root directory with:
 
-```
+```plaintext
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url_here
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key_here
 ```

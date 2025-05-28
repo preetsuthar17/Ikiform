@@ -131,6 +131,13 @@ const Hero = () => {
               </button>
             </div>
           </form>
+          {/* show count of people joined waitlist */}
+          {!countLoading && (
+            <p className="mt-4 text-gray-500 text-sm">
+              {waitlistCount.toLocaleString()} people have already joined the
+              waitlist!
+            </p>
+          )}
         </div>
       </section>
     </>

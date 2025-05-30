@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { toast } from "react-hot-toast";
+import { authToasts, networkToasts, appToasts } from "@/lib/toast";
 
 export default function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
@@ -15,24 +15,21 @@ export default function LoginForm() {
       setIsLoading(true);
       setLoadingProvider(provider);
 
-      const { error } = await supabase.auth.signInWithOAuth({
+      const signInPromise = supabase.auth.signInWithOAuth({
         provider,
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
         },
       });
 
-      if (error) {
-        console.error(`Error during ${provider} login:`, error);
-        toast.error(
-          `Failed to sign in with ${
-            provider === "github" ? "GitHub" : "Google"
-          }`,
-        );
-      }
+      await authToasts.signInPromise(signInPromise, provider);
     } catch (error) {
       console.error("Unexpected error:", error);
-      toast.error("An unexpected error occurred");
+      if (error instanceof Error && error.message.includes("network")) {
+        networkToasts.connectionError();
+      } else {
+        appToasts.unexpectedError();
+      }
     } finally {
       setIsLoading(false);
       setLoadingProvider(null);

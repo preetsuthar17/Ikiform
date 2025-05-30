@@ -5,7 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
-import { toast } from "react-hot-toast";
+import {
+  authToasts,
+  successToasts,
+  appToasts,
+  networkToasts,
+} from "@/lib/toast";
 import {
   Plus,
   FileText,
@@ -95,16 +100,16 @@ export default function DashboardContent({ user }: DashboardContentProps) {
 
   const handleSignOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        toast.error("Error signing out");
-      } else {
-        toast.success("Signed out successfully");
+      const signOutPromise = supabase.auth.signOut();
+
+      const { error } = await authToasts.signOutPromise(signOutPromise);
+
+      if (!error) {
         router.push("/");
         router.refresh();
       }
     } catch (error) {
-      toast.error("Unexpected error occurred");
+      authToasts.signOutError();
     }
   };
 
@@ -113,26 +118,26 @@ export default function DashboardContent({ user }: DashboardContentProps) {
       title: "Create New Form",
       description: "Start building your next form",
       icon: Plus,
-      action: () => toast.success("Form builder coming soon!"),
+      action: () => appToasts.featureNotAvailable(),
       primary: true,
     },
     {
       title: "View All Forms",
       description: "Manage your existing forms",
       icon: FileText,
-      action: () => toast.success("Forms management coming soon!"),
+      action: () => appToasts.featureNotAvailable(),
     },
     {
       title: "Analytics",
       description: "See your form performance",
       icon: BarChart3,
-      action: () => toast.success("Analytics dashboard coming soon!"),
+      action: () => appToasts.featureNotAvailable(),
     },
     {
       title: "Settings",
       description: "Configure your account",
       icon: Settings,
-      action: () => toast.success("Settings panel coming soon!"),
+      action: () => appToasts.featureNotAvailable(),
     },
   ];
 
@@ -248,7 +253,7 @@ export default function DashboardContent({ user }: DashboardContentProps) {
             audience.
           </p>
           <Button
-            onClick={() => toast.success("Form builder coming soon!")}
+            onClick={() => successToasts.created("Form")}
             className="bg-zinc-900 hover:bg-zinc-800"
           >
             <Plus className="w-4 h-4 mr-2" />

@@ -16,7 +16,7 @@ import { User } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
 import { LogOut, Settings, User as UserIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { toast } from "react-hot-toast";
+import { authToasts, appToasts } from "@/lib/toast";
 
 const Navbar = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -97,16 +97,16 @@ const Navbar = () => {
 
   const handleSignOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        toast.error("Error signing out");
-      } else {
-        toast.success("Signed out successfully");
+      const signOutPromise = supabase.auth.signOut();
+
+      const { error } = await authToasts.signOutPromise(signOutPromise);
+
+      if (!error) {
         router.push("/");
         router.refresh();
       }
     } catch (error) {
-      toast.error("Unexpected error occurred");
+      authToasts.signOutError();
     }
   };
   return (

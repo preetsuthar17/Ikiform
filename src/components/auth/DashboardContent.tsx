@@ -2,27 +2,11 @@
 
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
-import {
-  authToasts,
-  successToasts,
-  appToasts,
-  networkToasts,
-} from "@/lib/toast";
-import {
-  Plus,
-  FileText,
-  BarChart3,
-  Settings,
-  LogOut,
-  Users,
-  Calendar,
-  TrendingUp,
-  Star,
-  Zap,
-} from "lucide-react";
+import { useUserProfile } from "@/hooks/use-user-profile";
+import { successToasts, appToasts } from "@/lib/toast";
+import { Plus, FileText, BarChart3, Users } from "lucide-react";
 
 interface DashboardContentProps {
   user: User;
@@ -31,6 +15,13 @@ interface DashboardContentProps {
 export default function DashboardContent({ user }: DashboardContentProps) {
   const router = useRouter();
   const supabase = createClient();
+
+  // Use the user profile hook to automatically save/sync user data
+  const {
+    profile,
+    loading: profileLoading,
+    error: profileError,
+  } = useUserProfile(user);
 
   // Extract user data from different OAuth providers
   const getUserDisplayData = (user: User) => {
@@ -52,7 +43,6 @@ export default function DashboardContent({ user }: DashboardContentProps) {
           metadata.user_name ||
           user.email?.split("@")[0] ||
           "there",
-        avatar: metadata.avatar_url,
         email: user.email,
         provider: "GitHub",
       };
@@ -72,7 +62,6 @@ export default function DashboardContent({ user }: DashboardContentProps) {
           metadata.name?.split(" ")[0] ||
           user.email?.split("@")[0] ||
           "there",
-        avatar: metadata.avatar_url || metadata.picture,
         email: user.email,
         provider: "Google",
       };
@@ -90,63 +79,24 @@ export default function DashboardContent({ user }: DashboardContentProps) {
         metadata.name?.split(" ")[0] ||
         user.email?.split("@")[0] ||
         "there",
-      avatar: metadata.avatar_url || metadata.picture,
       email: user.email,
       provider: "Email",
     };
   };
 
-  const userDisplayData = getUserDisplayData(user);
-
-  const handleSignOut = async () => {
-    try {
-      const signOutPromise = supabase.auth.signOut();
-
-      const { error } = await authToasts.signOutPromise(signOutPromise);
-
-      if (!error) {
-        router.push("/");
-        router.refresh();
+  // Use profile data if available, otherwise fallback to getUserDisplayData
+  const userDisplayData = profile
+    ? {
+        name:
+          profile.full_name ||
+          `${profile.first_name} ${profile.last_name}`.trim() ||
+          "User",
+        firstName: profile.first_name || "User",
+        lastName: profile.last_name || "",
+        email: profile.email,
+        provider: profile.provider,
       }
-    } catch (error) {
-      authToasts.signOutError();
-    }
-  };
-
-  const quickActions = [
-    {
-      title: "Create New Form",
-      description: "Start building your next form",
-      icon: Plus,
-      action: () => appToasts.featureNotAvailable(),
-      primary: true,
-    },
-    {
-      title: "View All Forms",
-      description: "Manage your existing forms",
-      icon: FileText,
-      action: () => appToasts.featureNotAvailable(),
-    },
-    {
-      title: "Analytics",
-      description: "See your form performance",
-      icon: BarChart3,
-      action: () => appToasts.featureNotAvailable(),
-    },
-    {
-      title: "Settings",
-      description: "Configure your account",
-      icon: Settings,
-      action: () => appToasts.featureNotAvailable(),
-    },
-  ];
-
-  const stats = [
-    { label: "Total Forms", value: "0", icon: FileText, change: "+0%" },
-    { label: "Total Responses", value: "0", icon: Users, change: "+0%" },
-    { label: "This Month", value: "0", icon: Calendar, change: "+0%" },
-    { label: "Conversion Rate", value: "0%", icon: TrendingUp, change: "+0%" },
-  ];
+    : getUserDisplayData(user);
 
   return (
     <div className="min-h-screen bg-white">
@@ -163,84 +113,36 @@ export default function DashboardContent({ user }: DashboardContentProps) {
               Ready to create some beautiful forms?
             </p>
           </div>
-
-          {/* User Profile Section */}
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3 bg-gray-50 rounded-lg px-4 py-3">
-              <Avatar className="h-10 w-10">
-                <AvatarImage
-                  src={userDisplayData.avatar}
-                  alt={userDisplayData.name}
-                />
-                <AvatarFallback className="bg-zinc-900 text-white">
-                  {userDisplayData.firstName.charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <div className="hidden sm:block">
-                <p className="font-medium text-sm">{userDisplayData.name}</p>
-                <p className="text-xs text-gray-500">{userDisplayData.email}</p>
-              </div>
-            </div>
-          </div>
         </div>
-        {/* Stats Overview */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
-          {stats.map((stat, index) => (
-            <div
-              key={index}
-              className="bg-gray-50 rounded-lg p-6 border border-gray-200"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <stat.icon className="w-5 h-5 text-gray-600" />
-                <span className="text-xs text-green-600 font-medium">
-                  {stat.change}
-                </span>
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                <p className="text-sm text-gray-600">{stat.label}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-        {/* Quick Actions */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-dm-sans font-medium mb-6">
-            Quick Actions
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {quickActions.map((action, index) => (
-              <button
-                key={index}
-                onClick={action.action}
-                className={`text-left p-6 rounded-lg border-2 transition-all duration-200 hover:shadow-lg ${
-                  action.primary
-                    ? "bg-zinc-900 text-white border-zinc-900 hover:bg-zinc-800"
-                    : "bg-white border-gray-200 hover:border-gray-300"
-                }`}
-              >
-                <action.icon
-                  className={`w-6 h-6 mb-3 ${
-                    action.primary ? "text-white" : "text-gray-600"
-                  }`}
-                />
-                <h3
-                  className={`font-medium mb-1 ${
-                    action.primary ? "text-white" : "text-gray-900"
-                  }`}
-                >
-                  {action.title}
-                </h3>
-                <p
-                  className={`text-sm ${
-                    action.primary ? "text-gray-200" : "text-gray-600"
-                  }`}
-                >
-                  {action.description}
-                </p>
-              </button>
-            ))}
-          </div>
+        {/* Quick Navigation */}
+        <div className="flex flex-wrap gap-3 mb-8">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => router.push("/dashboard/profile")}
+            className="flex items-center gap-2"
+          >
+            <Users className="w-4 h-4" />
+            Profile
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => appToasts.featureNotAvailable()}
+            className="flex items-center gap-2"
+          >
+            <BarChart3 className="w-4 h-4" />
+            Analytics
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => appToasts.featureNotAvailable()}
+            className="flex items-center gap-2"
+          >
+            <FileText className="w-4 h-4" />
+            Forms
+          </Button>
         </div>
         {/* Recent Activity Placeholder */}
         <div className="bg-gray-50 rounded-lg p-8 text-center border border-gray-200">

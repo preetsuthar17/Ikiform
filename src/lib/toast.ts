@@ -11,7 +11,7 @@ export const showToast = {
       loading: string;
       success: string | ((data: T) => string);
       error: string | ((error: any) => string);
-    }
+    },
   ) => toast.promise(promise, messages),
   dismiss: (toastId?: string) => toast.dismiss(toastId),
 };
@@ -38,11 +38,11 @@ export const authToasts = {
   },
   signOutError: () =>
     showToast.error(
-      "Failed to sign out properly. You may need to refresh the page."
+      "Failed to sign out properly. You may need to refresh the page.",
     ),
   invalidCredentials: () =>
     showToast.error(
-      "Invalid email or password. Please check your credentials."
+      "Invalid email or password. Please check your credentials.",
     ),
   userNotFound: () =>
     showToast.error("User not found. Please check your email or sign up."),
@@ -52,13 +52,13 @@ export const authToasts = {
     showToast.error("Your account has been disabled. Please contact support."),
   tooManyAttempts: () =>
     showToast.error(
-      "Too many sign-in attempts. Please wait before trying again."
+      "Too many sign-in attempts. Please wait before trying again.",
     ),
   sessionExpired: () =>
     showToast.error("Your session has expired. Please sign in again."),
   tokenExpired: () =>
     showToast.error(
-      "Your authentication token has expired. Please sign in again."
+      "Your authentication token has expired. Please sign in again.",
     ),
   weakPassword: () =>
     showToast.error("Password is too weak. Please use a stronger password."),
@@ -66,7 +66,7 @@ export const authToasts = {
     showToast.error("Passwords do not match. Please try again."),
   emailInUse: () =>
     showToast.error(
-      "This email is already in use. Please use a different email."
+      "This email is already in use. Please use a different email.",
     ),
   providerError: (provider: string) =>
     showToast.error(`${provider} authentication failed. Please try again.`),
@@ -146,7 +146,7 @@ export const validationToasts = {
 export const networkToasts = {
   connectionError: () =>
     showToast.error(
-      "No internet connection. Please check your network and try again."
+      "No internet connection. Please check your network and try again.",
     ),
   timeoutError: () => showToast.error("Request timed out. Please try again."),
   serverError: () =>
@@ -167,7 +167,7 @@ export const networkToasts = {
     showToast.error("Service is under maintenance. Please try again later."),
   apiError: (endpoint?: string) =>
     showToast.error(
-      `API error${endpoint ? ` at ${endpoint}` : ""}. Please try again.`
+      `API error${endpoint ? ` at ${endpoint}` : ""}. Please try again.`,
     ),
   corsError: () =>
     showToast.error("Cross-origin request blocked. Please contact support."),
@@ -187,11 +187,11 @@ export const databaseToasts = {
     showToast.error(`Failed to delete ${item || "record"}. Please try again.`),
   duplicateEntry: (field?: string) =>
     showToast.error(
-      `${field || "Entry"} already exists. Please use a different value.`
+      `${field || "Entry"} already exists. Please use a different value.`,
     ),
   constraintViolation: () =>
     showToast.error(
-      "Operation violates data constraints. Please check your input."
+      "Operation violates data constraints. Please check your input.",
     ),
   transactionFailed: () =>
     showToast.error("Transaction failed. Changes have been rolled back."),
@@ -216,7 +216,7 @@ export const fileToasts = {
     showToast.error("File failed security scan. Please try a different file."),
   storageQuotaExceeded: () =>
     showToast.error(
-      "Storage quota exceeded. Please free up space and try again."
+      "Storage quota exceeded. Please free up space and try again.",
     ),
 };
 
@@ -224,7 +224,7 @@ export const fileToasts = {
 export const paymentToasts = {
   paymentFailed: () =>
     showToast.error(
-      "Payment failed. Please check your payment method and try again."
+      "Payment failed. Please check your payment method and try again.",
     ),
   cardDeclined: () =>
     showToast.error("Card declined. Please use a different payment method."),
@@ -250,25 +250,25 @@ export const appToasts = {
     showToast.error("This feature is not available yet. Coming soon!"),
   maintenanceMode: () =>
     showToast.error(
-      "Application is under maintenance. Please try again later."
+      "Application is under maintenance. Please try again later.",
     ),
   versionMismatch: () =>
     showToast.error("App version mismatch. Please refresh the page."),
   browserNotSupported: () =>
     showToast.error(
-      "Your browser is not supported. Please use a modern browser."
+      "Your browser is not supported. Please use a modern browser.",
     ),
   javascriptDisabled: () =>
     showToast.error(
-      "JavaScript is disabled. Please enable it to use this application."
+      "JavaScript is disabled. Please enable it to use this application.",
     ),
   cookiesDisabled: () =>
     showToast.error(
-      "Cookies are disabled. Please enable them to use this application."
+      "Cookies are disabled. Please enable them to use this application.",
     ),
   storageQuotaExceeded: () =>
     showToast.error(
-      "Browser storage quota exceeded. Please clear your browser data."
+      "Browser storage quota exceeded. Please clear your browser data.",
     ),
   geolocationDenied: () =>
     showToast.error("Location access denied. Please enable location services."),
@@ -276,11 +276,11 @@ export const appToasts = {
     showToast.error("Camera access denied. Please allow camera permissions."),
   microphoneAccessDenied: () =>
     showToast.error(
-      "Microphone access denied. Please allow microphone permissions."
+      "Microphone access denied. Please allow microphone permissions.",
     ),
   clipboardAccessDenied: () =>
     showToast.error(
-      "Clipboard access denied. Please allow clipboard permissions."
+      "Clipboard access denied. Please allow clipboard permissions.",
     ),
 };
 
@@ -290,27 +290,27 @@ export const businessToasts = {
     showToast.error(`${operation || "Operation"} is not allowed at this time.`),
   quotaExceeded: (resource?: string) =>
     showToast.error(
-      `${resource || "Resource"} quota exceeded. Please upgrade your plan.`
+      `${resource || "Resource"} quota exceeded. Please upgrade your plan.`,
     ),
   limitReached: (limit?: string) =>
     showToast.error(
-      `${limit || "Limit"} reached. Please remove items or upgrade.`
+      `${limit || "Limit"} reached. Please remove items or upgrade.`,
     ),
   duplicateAction: () =>
     showToast.error("This action has already been performed."),
   prerequisiteNotMet: (prerequisite?: string) =>
     showToast.error(
-      `${prerequisite || "Required condition"} not met. Please complete first.`
+      `${prerequisite || "Required condition"} not met. Please complete first.`,
     ),
   conflictingState: () =>
     showToast.error(
-      "Resource is in a conflicting state. Please refresh and try again."
+      "Resource is in a conflicting state. Please refresh and try again.",
     ),
   operationNotAllowed: () =>
     showToast.error("This operation is not allowed for your account type."),
   temporarilyUnavailable: (feature?: string) =>
     showToast.error(
-      `${feature || "Feature"} is temporarily unavailable. Please try again later.`
+      `${feature || "Feature"} is temporarily unavailable. Please try again later.`,
     ),
 };
 

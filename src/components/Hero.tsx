@@ -194,7 +194,7 @@ const Hero = () => {
     const fetchStarCount = async () => {
       try {
         const res = await fetch(
-          "https://api.github.com/repos/preetsuthar17/ikiform"
+          "https://api.github.com/repos/preetsuthar17/ikiform",
         );
         const data = await res.json();
         if (data && typeof data.stargazers_count === "number") {

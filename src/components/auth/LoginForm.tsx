@@ -1,8 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
 import { authToasts, networkToasts, appToasts } from "@/lib/toast";
 
 export default function LoginForm() {
@@ -43,7 +43,6 @@ export default function LoginForm() {
   return (
     <div className="w-full max-w-md mx-auto">
       <div className="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm flex flex-col gap-8">
-        {/* Header */}
         <div className="text-center">
           <h2 className="text-2xl font-dm-sans font-medium text-gray-900 mb-2">
             Welcome to Ikiform
@@ -51,7 +50,6 @@ export default function LoginForm() {
           <p className="text-gray-600">Choose your preferred sign-in method</p>
         </div>
 
-        {/* Divider */}
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-gray-200" />
@@ -63,7 +61,6 @@ export default function LoginForm() {
           </div>
         </div>
 
-        {/* Social Login Buttons */}
         <div className="flex flex-col gap-3">
           <Button
             variant="outline"
@@ -72,7 +69,6 @@ export default function LoginForm() {
             disabled={isLoading}
           >
             <div className="flex items-center justify-center">
-              {" "}
               {loadingProvider === "github" ? (
                 <LoadingSpinner />
               ) : (

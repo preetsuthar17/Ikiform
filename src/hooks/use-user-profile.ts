@@ -34,7 +34,7 @@ export const useUserProfile = (user: User | null) => {
 
           // If upsert fails, try to fetch existing profile
           const { data: fetchData, error: fetchError } = await getUserProfile(
-            user.id
+            user.id,
           );
 
           if (fetchError) {

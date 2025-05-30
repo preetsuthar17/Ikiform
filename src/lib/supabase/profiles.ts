@@ -84,7 +84,7 @@ export const extractUserData = (user: User) => {
 
 // Create or update user profile
 export const upsertUserProfile = async (
-  user: User
+  user: User,
 ): Promise<{ data: UserProfile | null; error: any }> => {
   const supabase = createClient();
   const userData = extractUserData(user);
@@ -108,7 +108,7 @@ export const upsertUserProfile = async (
 
 // Get user profile by ID
 export const getUserProfile = async (
-  userId: string
+  userId: string,
 ): Promise<{ data: UserProfile | null; error: any }> => {
   const supabase = createClient();
 
@@ -129,7 +129,7 @@ export const getUserProfile = async (
 // Update user profile
 export const updateUserProfile = async (
   userId: string,
-  updates: Partial<UserProfile>
+  updates: Partial<UserProfile>,
 ): Promise<{ data: UserProfile | null; error: any }> => {
   const supabase = createClient();
 
@@ -150,7 +150,7 @@ export const updateUserProfile = async (
 
 // Delete user profile
 export const deleteUserProfile = async (
-  userId: string
+  userId: string,
 ): Promise<{ error: any }> => {
   const supabase = createClient();
 

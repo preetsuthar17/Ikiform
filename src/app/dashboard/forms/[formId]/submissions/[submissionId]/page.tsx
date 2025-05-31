@@ -57,8 +57,25 @@ export default function SubmissionDetailsPage() {
         const supabase = createClient();
 
         console.log("🔍 Fetching submission with:", { formId, submissionId });
+        console.log(
+          "🔍 Type check - formId:",
+          typeof formId,
+          "submissionId:",
+          typeof submissionId
+        );
 
-        // Fetch the specific submission
+        // First, let's try to get all submissions for this form to see what's available
+        console.log("🔍 First, checking all submissions for this form...");
+        const { data: allSubmissions, error: allError } = await supabase
+          .from("form_responses")
+          .select("id, form_id, submitted_at")
+          .eq("form_id", formId);
+
+        console.log("📊 All submissions for form:", allSubmissions);
+        console.log("📊 All submissions error:", allError);
+
+        // Now try to fetch the specific submission
+        console.log("🔍 Now fetching specific submission...");
         const { data, error } = await supabase
           .from("form_responses")
           .select("*")
@@ -66,7 +83,23 @@ export default function SubmissionDetailsPage() {
           .eq("form_id", formId)
           .maybeSingle();
 
-        console.log("📊 Submission query result:", { data, error });
+        console.log("📊 Specific submission query result:", { data, error });
+
+        // Also try without the form_id constraint to see if the submission exists at all
+        console.log(
+          "🔍 Trying to fetch submission without form_id constraint..."
+        );
+        const { data: submissionOnly, error: submissionOnlyError } =
+          await supabase
+            .from("form_responses")
+            .select("*")
+            .eq("id", submissionId)
+            .maybeSingle();
+
+        console.log("📊 Submission-only query result:", {
+          data: submissionOnly,
+          error: submissionOnlyError,
+        });
 
         if (error) {
           throw error;

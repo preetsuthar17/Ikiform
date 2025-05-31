@@ -109,7 +109,7 @@ export async function GET(
 
     console.log("📊 Direct query result:", directSubmissions);
     console.log("📋 Direct query count:", directSubmissions?.length || 0);
-    
+
     // Add detailed debugging for each submission
     if (directSubmissions && directSubmissions.length > 0) {
       directSubmissions.forEach((submission, index) => {
@@ -117,7 +117,7 @@ export async function GET(
           id: submission.id,
           form_id: submission.form_id,
           submitted_at: submission.submitted_at,
-          respondent_email: submission.respondent_email
+          respondent_email: submission.respondent_email,
         });
       });
     }

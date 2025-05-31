@@ -67,7 +67,10 @@ export default function FormAnalyticsPage() {
     if (responses && responses.length > 0) {
       console.log("🔍 Analytics Page: Received responses data:", responses);
       console.log("📊 Analytics Page: First response ID:", responses[0].id);
-      console.log("📋 Analytics Page: All response IDs:", responses.map(r => r.id));
+      console.log(
+        "📋 Analytics Page: All response IDs:",
+        responses.map((r) => r.id)
+      );
     }
   }, [responses]);
 

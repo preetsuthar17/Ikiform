@@ -260,7 +260,7 @@ export class FormService {
     formId: string
   ): Promise<{ responses: FormResponse[] }> {
     console.log("🔍 FormService: Fetching responses for formId:", formId);
-    
+
     const response = await fetch(
       `${this.baseUrl}/api/forms/${formId}/submissions`,
       {
@@ -274,7 +274,10 @@ export class FormService {
 
     const result = await response.json();
     console.log("📊 FormService: API response:", result);
-    console.log("📋 FormService: Response IDs:", result.responses?.map((r: any) => r.id));
+    console.log(
+      "📋 FormService: Response IDs:",
+      result.responses?.map((r: any) => r.id)
+    );
 
     return result;
   }

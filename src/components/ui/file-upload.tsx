@@ -156,7 +156,7 @@ export function FileUploadComponent({
       if (disabled) return;
 
       try {
-        await FileUploadService.deleteFile(fileToRemove.path);
+        await FileUploadService.deleteFile(formId, fieldId, fileToRemove.name);
         const newUploadedFiles = state.uploadedFiles.filter(
           (f) => f.id !== fileToRemove.id
         );

@@ -196,16 +196,12 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       .insert({
         form_id: form.id,
         response_data: responses,
-        metadata: {
-          ...metadata,
-          ip_address:
-            request.headers.get("x-forwarded-for") ||
-            request.headers.get("x-real-ip") ||
-            "unknown",
-          user_agent: request.headers.get("user-agent") || "unknown",
-          completion_time: metadata.completion_time || 0,
-          submitted_via: "public_link",
-        },
+        ip_address:
+          request.headers.get("x-forwarded-for") ||
+          request.headers.get("x-real-ip") ||
+          "unknown",
+        user_agent: request.headers.get("user-agent") || "unknown",
+        completion_time: metadata.completion_time || 0,
       })
       .select()
       .single();

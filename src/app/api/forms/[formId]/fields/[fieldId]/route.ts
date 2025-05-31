@@ -3,13 +3,6 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { FormField } from "@/lib/types/forms";
 
-interface RouteParams {
-  params: Promise<{
-    formId: string;
-    fieldId: string;
-  }>;
-}
-
 /**
  * Handles the GET request for retrieving a specific form field.
  *
@@ -23,7 +16,10 @@ interface RouteParams {
  * @throws Returns a 404 status if the field is not found or the user does not own the form.
  * @throws Returns a 500 status if an internal server error occurs.
  */
-export async function GET(request: NextRequest, { params }: RouteParams) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { formId: string; fieldId: string } }
+) {
   try {
     const supabase = await createClient();
     const { formId, fieldId } = await params;
@@ -82,7 +78,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
  * 4. Verifies the ownership of the form and updates the field in the database.
  * 5. Returns the updated field data in the response if successful.
  */
-export async function PUT(request: NextRequest, { params }: RouteParams) {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ formId: string; fieldId: string }> }
+) {
   try {
     const supabase = await createClient();
     const { formId, fieldId } = await params;
@@ -162,7 +161,10 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
  * 3. Reorders the remaining fields in the form to maintain sequential order.
  * 4. Returns an appropriate response based on the outcome of the operation.
  */
-export async function DELETE(request: NextRequest, { params }: RouteParams) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ formId: string; fieldId: string }> }
+) {
   try {
     const supabase = await createClient();
     const { formId, fieldId } = await params;

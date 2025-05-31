@@ -16,7 +16,7 @@ import { createClient } from "@/lib/supabase/server";
  * - Fetches the form responses from the database.
  * - Exports the form data in the requested format:
  *   - **JSON**: Includes form details, fields, responses, and export timestamp.
- *   - **CSV**: Includes headers and rows with response data, metadata, and completion time.
+ *   - **CSV**: Includes headers and rows with response data, IP address, user agent, and completion time.
  * - Returns the exported data as a downloadable file with appropriate headers.
  *
  * ### Error Handling:
@@ -134,9 +134,9 @@ export async function GET(
           }
           return value || "";
         }),
-        response.metadata?.ip_address || "",
-        response.metadata?.user_agent || "",
-        response.metadata?.completion_time || "",
+        response.ip_address || "",
+        response.user_agent || "",
+        response.completion_time || "",
       ]);
 
       // Convert to CSV string

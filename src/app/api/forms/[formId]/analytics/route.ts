@@ -89,7 +89,7 @@ export async function GET(
     // Get response data for additional insights
     const { data: responses, error: responsesError } = await supabase
       .from("form_responses")
-      .select("submitted_at, metadata")
+      .select("submitted_at, completion_time")
       .eq("form_id", formId);
 
     if (responsesError) {
@@ -116,7 +116,7 @@ export async function GET(
 
     // Calculate completion time stats
     const completionTimes =
-      responses?.map((r) => r.metadata?.completion_time).filter(Boolean) || [];
+      responses?.map((r) => r.completion_time).filter(Boolean) || [];
     const avgCompletionTime =
       completionTimes.length > 0
         ? completionTimes.reduce((a, b) => a + b, 0) / completionTimes.length

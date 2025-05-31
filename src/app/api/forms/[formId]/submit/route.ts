@@ -2,13 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { FormResponse } from "@/lib/types/forms";
 
-interface RouteParams {
-  params: Promise<{
-    formId: string;
-  }>;
-}
-
-export async function POST(request: NextRequest, { params }: RouteParams) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ formId: string }> }
+) {
   try {
     const supabase = await createClient();
     const { formId } = await params;
@@ -211,7 +208,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
   }
 }
 
-export async function GET(request: NextRequest, { params }: RouteParams) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ formId: string }> }
+) {
   try {
     const supabase = await createClient();
     const { formId } = await params;

@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
-interface RouteParams {
-  params: {
-    shareUrl: string;
-  };
-}
-
 /**
  * Handles the GET request for fetching a public form by its share URL.
  *
@@ -43,7 +37,10 @@ interface RouteParams {
  *   }
  * }
  */
-export async function GET(request: NextRequest, { params }: RouteParams) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ shareUrl: string }> }
+) {
   try {
     const supabase = await createClient();
     const { shareUrl } = await params;
@@ -128,7 +125,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
  * ### Errors:
  * - Logs errors to the console for debugging purposes.
  */
-export async function POST(request: NextRequest, { params }: RouteParams) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ shareUrl: string }> }
+) {
   try {
     const supabase = await createClient();
     const { shareUrl } = await params;

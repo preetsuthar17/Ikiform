@@ -20,10 +20,12 @@ import { existsSync } from "fs";
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { formId: string; fieldId: string; fileName: string } }
+  {
+    params,
+  }: { params: Promise<{ formId: string; fieldId: string; fileName: string }> }
 ) {
   try {
-    const { formId, fieldId, fileName } = params;
+    const { formId, fieldId, fileName } = await params;
 
     const filePath = join(process.cwd(), "uploads", formId, fieldId, fileName);
 

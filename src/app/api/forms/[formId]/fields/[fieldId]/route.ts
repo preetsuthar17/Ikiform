@@ -18,7 +18,7 @@ import { FormField } from "@/lib/types/forms";
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { formId: string; fieldId: string } }
+  { params }: { params: Promise<{ formId: string; fieldId: string }> }
 ) {
   try {
     const supabase = await createClient();

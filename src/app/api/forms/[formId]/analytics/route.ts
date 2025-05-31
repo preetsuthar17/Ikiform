@@ -50,11 +50,11 @@ interface RouteParams {
  */
 export async function GET(
   request: NextRequest,
-  context: { params: { formId: string } }
+  { params }: { params: { formId: string } }
 ) {
   try {
     const supabase = await createClient();
-    const { formId } = context.params;
+    const { formId } = params;
 
     // Get current user
     const {
@@ -85,7 +85,7 @@ export async function GET(
       .single();
 
     if (analyticsError && analyticsError.code !== "PGRST116") {
-      // Ensure "PGRST116" is valid or replace with a known constant
+      // Handle Supabase "no rows returned" error code
       return NextResponse.json(
         { error: analyticsError.message },
         { status: 500 }

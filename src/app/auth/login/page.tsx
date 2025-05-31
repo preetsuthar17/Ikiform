@@ -15,7 +15,7 @@ export default async function LoginPage() {
   }
 
   return (
-    <div className="flex justify-center flex-col items-center gap-8 max-w-6xl w-[95%] mx-auto h-[calc(100dvh-200px)]">
+    <div className="flex justify-center flex-col items-center gap-8 max-w-6xl w-[95%] mx-auto">
       <LoginForm />
 
       {/* Footer Text */}

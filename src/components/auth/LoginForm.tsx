@@ -42,7 +42,7 @@ export default function LoginForm() {
 
   return (
     <div className="w-full max-w-md mx-auto">
-      <div className="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm flex flex-col gap-8">
+      <div className="bg-neutral-50 rounded-2xl p-8 flex flex-col gap-8">
         <div className="text-center">
           <h2 className="text-2xl font-dm-sans font-medium text-gray-900 mb-2">
             Welcome to Ikiform
@@ -55,7 +55,7 @@ export default function LoginForm() {
             <div className="w-full border-t border-gray-200" />
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-3 bg-white text-gray-500">
+            <span className="px-3 bg-neutral-50 text-gray-500">
               Quick & secure authentication
             </span>
           </div>
@@ -64,7 +64,7 @@ export default function LoginForm() {
         <div className="flex flex-col gap-3">
           <Button
             variant="outline"
-            className="w-full h-12 text-sm font-medium border-gray-300 hover:bg-gray-50 hover:border-gray-400 focus:ring-2 focus:ring-zinc-500 focus:border-transparent transition-all duration-200"
+            className="w-full h-12 text-sm font-inter shadow-none border-gray-300  hover:border-gray-400 focus:ring-2 focus:ring-zinc-500 focus:border-transparent transition-all duration-200"
             onClick={() => handleOAuthLogin("github")}
             disabled={isLoading}
           >
@@ -86,7 +86,7 @@ export default function LoginForm() {
 
           <Button
             variant="outline"
-            className="w-full h-12 text-sm font-medium border-gray-300 hover:bg-gray-50 hover:border-gray-400 focus:ring-2 focus:ring-zinc-500 focus:border-transparent transition-all duration-200"
+            className="w-full h-12 text-sm font-inter shadow-none border-gray-300  hover:border-gray-400 focus:ring-2 focus:ring-zinc-500 focus:border-transparent transition-all duration-200"
             onClick={() => handleOAuthLogin("google")}
             disabled={isLoading}
           >

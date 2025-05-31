@@ -131,7 +131,7 @@ export default function ProfileContent({ user }: ProfileContentProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-neutral-50">
       <div className="max-w-4xl mx-auto py-8 px-4">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
@@ -206,7 +206,7 @@ export default function ProfileContent({ user }: ProfileContentProps) {
                         }
                       />
                     ) : (
-                      <p className="px-3 py-2 text-sm bg-gray-50 rounded-md">
+                      <p className="px-3 py-2 text-sm bg-neutral-50 rounded-md">
                         {displayData.firstName}
                       </p>
                     )}
@@ -225,7 +225,7 @@ export default function ProfileContent({ user }: ProfileContentProps) {
                         }
                       />
                     ) : (
-                      <p className="px-3 py-2 text-sm bg-gray-50 rounded-md">
+                      <p className="px-3 py-2 text-sm bg-neutral-50 rounded-md">
                         {displayData.lastName || "Not provided"}
                       </p>
                     )}
@@ -234,7 +234,7 @@ export default function ProfileContent({ user }: ProfileContentProps) {
 
                 <div className="space-y-2">
                   <Label htmlFor="email">Email Address</Label>
-                  <p className="px-3 py-2 text-sm bg-gray-50 rounded-md text-gray-600">
+                  <p className="px-3 py-2 text-sm bg-neutral-50 rounded-md text-gray-600">
                     {displayData.email} (managed by {displayData.provider})
                   </p>
                 </div>

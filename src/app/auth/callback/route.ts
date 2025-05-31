@@ -2,7 +2,38 @@ import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 
 /**
- * Enhanced OAuth callback handler with security improvements
+ * Handles the GET request for the OAuth callback route.
+ *
+ * This function processes the OAuth callback by validating the request,
+ * handling errors, exchanging the authorization code for a session,
+ * and redirecting the user to the appropriate destination.
+ *
+ * @param request - The incoming `NextRequest` object containing the callback request details.
+ * @returns A `NextResponse` object that redirects the user to the appropriate page based on the outcome.
+ *
+ * ### Behavior:
+ * - Validates the `referer` header to prevent CSRF attacks.
+ * - Handles OAuth errors by mapping them to user-friendly error messages and redirecting to the login page.
+ * - Exchanges the authorization code for a session using Supabase.
+ * - Validates the session and user data after the exchange.
+ * - Redirects the user to a secure destination, ensuring the redirect URL is same-origin and matches allowed paths.
+ *
+ * ### Error Handling:
+ * - Redirects to the login page with appropriate error messages for:
+ *   - Invalid or missing `referer`.
+ *   - OAuth errors (e.g., `access_denied`, `invalid_request`).
+ *   - Missing or invalid authorization code.
+ *   - Token exchange errors (e.g., expired or invalid code).
+ *   - Session creation failures.
+ *   - Timeout during the token exchange process.
+ *   - Generic callback handler errors.
+ *
+ * ### Security:
+ * - Validates the `referer` header to ensure it matches the request's origin.
+ * - Ensures the redirect URL is same-origin and matches a predefined list of allowed paths.
+ *
+ * ### Logging:
+ * - Logs successful authentication details in development mode, including user ID, email, provider, and timestamp.
  */
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
@@ -40,8 +71,8 @@ export async function GET(request: NextRequest) {
     const mappedError = errorMap[error] || "unknown_error";
     return NextResponse.redirect(
       `${origin}/auth/login?error=${mappedError}&description=${encodeURIComponent(
-        errorDescription || "",
-      )}`,
+        errorDescription || ""
+      )}`
     );
   }
 
@@ -57,7 +88,7 @@ export async function GET(request: NextRequest) {
     // Exchange code for session with timeout
     const exchangePromise = supabase.auth.exchangeCodeForSession(code);
     const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error("Exchange timeout")), 10000),
+      setTimeout(() => reject(new Error("Exchange timeout")), 10000)
     );
 
     const { data, error: exchangeError } = (await Promise.race([
@@ -75,7 +106,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.redirect(`${origin}/auth/login?error=invalid_code`);
       } else {
         return NextResponse.redirect(
-          `${origin}/auth/login?error=exchange_failed`,
+          `${origin}/auth/login?error=exchange_failed`
         );
       }
     }
@@ -98,7 +129,7 @@ export async function GET(request: NextRequest) {
           // Additional validation: only allow specific paths
           const allowedPaths = ["/dashboard", "/profile", "/settings"];
           const isAllowedPath = allowedPaths.some((path) =>
-            redirectUrl.pathname.startsWith(path),
+            redirectUrl.pathname.startsWith(path)
           );
 
           if (isAllowedPath) {

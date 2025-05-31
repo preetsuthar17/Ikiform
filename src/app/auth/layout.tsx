@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { DM_Sans, Inter } from "next/font/google";
 
-import "./globals.css";
+import "../../app/globals.css";
 
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -21,14 +21,23 @@ const dm_sans = DM_Sans({
   subsets: ["latin"],
 });
 
+export const viewport: Viewport = {
+  colorScheme: "light",
+  themeColor: "white",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
 // Metadata for SEO, social sharing, and PWA
 export const metadata: Metadata = {
   title: {
-    default: "Ikiform",
+    default: "Sign In | Ikiform",
     template: "%s | Ikiform",
   },
   description:
-    "Create beautiful forms with Ikiform - the open-source alternative to Typeform and Google Forms. Build surveys, collect responses, and analyze data effortlessly.",
+    "Sign in to your Ikiform account to create and manage your forms, surveys, and questionnaires.",
   applicationName: "Ikiform",
   authors: [{ name: "Ikiform Team", url: "https://ikiform.com" }],
   creator: "Ikiform",
@@ -40,22 +49,22 @@ export const metadata: Metadata = {
   },
   metadataBase: new URL("https://ikiform.com"),
   alternates: {
-    canonical: "/",
+    canonical: "/auth",
   },
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://ikiform.com",
+    url: "https://ikiform.com/auth",
     siteName: "Ikiform",
-    title: "Ikiform",
+    title: "Sign In | Ikiform",
     description:
-      "Create beautiful, interactive forms with Ikiform - the open-source alternative to Typeform and Google Forms. Build surveys, collect responses, and analyze data effortlessly.",
+      "Sign in to your Ikiform account to create and manage beautiful, interactive forms and surveys.",
     images: [
       {
         url: "/og-banner.png",
         width: 1200,
         height: 630,
-        alt: "Ikiform",
+        alt: "Ikiform Sign In",
         type: "image/png",
       },
     ],
@@ -64,16 +73,16 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     site: "@ikiform",
     creator: "@ikiform",
-    title: "Ikiform",
+    title: "Sign In | Ikiform",
     description:
-      "Create beautiful, interactive forms with Ikiform - the open-source alternative to Typeform and Google Forms.",
+      "Sign in to your Ikiform account to create and manage beautiful forms and surveys.",
     images: ["/og-banner.png"],
   },
   robots: {
-    index: true,
+    index: false,
     follow: true,
     googleBot: {
-      index: true,
+      index: false,
       follow: true,
       "max-video-preview": -1,
       "max-image-preview": "large",
@@ -83,39 +92,31 @@ export const metadata: Metadata = {
   icons: {
     icon: [{ url: "/favicon.ico" }],
   },
-  themeColor: [{ media: "(prefers-color-scheme: light)", color: "#ffffff" }],
-  viewport: "width=device-width, initial-scale=1, maximum-scale=5",
+
   keywords: [
-    "form builder",
-    "online forms",
-    "surveys",
-    "questionnaires",
-    "open source",
-    "typeform alternative",
-    "google forms alternative",
-    "form creator",
-    "survey tool",
-    "data collection",
-    "ikiform",
-    "form software",
-    "custom forms",
-    "interactive forms",
-    "form analytics",
+    "ikiform login",
+    "ikiform sign in",
+    "form builder login",
+    "survey tool login",
+    "authentication",
+    "user account",
   ],
   category: "technology",
   classification: "Business Software",
 };
 
-export default function RootLayout({
+export default function AuthLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${inter.variable} ${dm_sans.variable} antialiased`}>
+    <html lang="en" className="min-h-screen ">
+      <body
+        className={`${inter.variable} ${dm_sans.variable} antialiased min-h-screen flex flex-col justify-between font-inter`}
+      >
         <Navbar />
-        <main className="min-h-screen">{children}</main>
+        <main>{children}</main>
         <Toaster position="top-center" />
         <Footer />
       </body>

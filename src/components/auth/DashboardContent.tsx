@@ -2,11 +2,40 @@
 
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { useUserProfile } from "@/hooks/use-user-profile";
-import { successToasts, appToasts } from "@/lib/toast";
-import { Plus, FileText, BarChart3, Users } from "lucide-react";
+import { useForms } from "@/lib/hooks/useForms";
+import { useState, useEffect } from "react";
+import {
+  Plus,
+  FileText,
+  BarChart3,
+  Users,
+  Eye,
+  Edit,
+  Share,
+  Trash2,
+  ExternalLink,
+  Calendar,
+  TrendingUp,
+  Copy,
+  LogOut,
+} from "lucide-react";
+import { toast } from "sonner";
 
 interface DashboardContentProps {
   user: User;
@@ -16,12 +45,98 @@ export default function DashboardContent({ user }: DashboardContentProps) {
   const router = useRouter();
   const supabase = createClient();
 
-  // Use the user profile hook to automatically save/sync user data
+  // Hooks
   const {
     profile,
     loading: profileLoading,
     error: profileError,
   } = useUserProfile(user);
+  const {
+    forms,
+    loading: formsLoading,
+    error: formsError,
+    fetchForms,
+    deleteForm,
+  } = useForms();
+
+  // State
+  const [analytics, setAnalytics] = useState<any>(null);
+  const [analyticsLoading, setAnalyticsLoading] = useState(true);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [formToDelete, setFormToDelete] = useState<{
+    id: string;
+    title: string;
+  } | null>(null);
+
+  // Fetch analytics on component mount
+  useEffect(() => {
+    fetchAnalytics();
+  }, []);
+
+  const fetchAnalytics = async () => {
+    try {
+      setAnalyticsLoading(true);
+      const response = await fetch("/api/dashboard/analytics");
+      if (response.ok) {
+        const data = await response.json();
+        setAnalytics(data.overview);
+      }
+    } catch (error) {
+      console.error("Failed to fetch analytics:", error);
+    } finally {
+      setAnalyticsLoading(false);
+    }
+  };
+  const handleCreateForm = () => {
+    router.push("/dashboard/forms/new");
+  };
+
+  const handleEditForm = (formId: string) => {
+    router.push(`/dashboard/forms/${formId}`);
+  };
+
+  const handleViewForm = (shareUrl: string) => {
+    window.open(`/f/${shareUrl}`, "_blank");
+  };
+
+  const handleCopyLink = (shareUrl: string) => {
+    const url = `${window.location.origin}/f/${shareUrl}`;
+    navigator.clipboard.writeText(url);
+    toast.success("Form link copied to clipboard!");
+  };
+
+  const handleDeleteForm = (formId: string, formTitle: string) => {
+    setFormToDelete({ id: formId, title: formTitle });
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteForm = async () => {
+    if (!formToDelete) return;
+
+    try {
+      await deleteForm(formToDelete.id);
+      toast.success("Form deleted successfully");
+      fetchAnalytics(); // Refresh analytics
+    } catch (error) {
+      toast.error("Failed to delete form");
+    } finally {
+      setDeleteDialogOpen(false);
+      setFormToDelete(null);
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+
+      toast.success("Signed out successfully");
+      router.push("/");
+      router.refresh();
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
 
   // Extract user data from different OAuth providers
   const getUserDisplayData = (user: User) => {
@@ -99,70 +214,267 @@ export default function DashboardContent({ user }: DashboardContentProps) {
     : getUserDisplayData(user);
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Main Content */}
-      <div className="max-w-6xl w-[90%] mx-auto py-8">
-        {" "}
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-12">
-          <div className="mb-6 md:mb-0">
-            <h1 className="text-4xl md:text-5xl font-dm-sans font-medium mb-2">
-              Welcome back, {userDisplayData.firstName}! 👋
-            </h1>
-            <p className="text-gray-600 text-lg">
-              Ready to create some beautiful forms?
-            </p>
+    <div className="min-h-screen">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-6">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+              <p className="text-gray-600">
+                Welcome back, {userDisplayData.firstName}!
+              </p>
+            </div>
+            <div className="flex items-center gap-4">
+              <Button onClick={handleCreateForm} className="gap-2">
+                Create Form
+                <Plus className="w-4 h-4" />
+              </Button>
+              <Button variant="ghost" onClick={handleSignOut}>
+                Sign Out
+                <LogOut className="w-4 h-4s" />
+              </Button>
+            </div>
           </div>
         </div>
-        {/* Quick Navigation */}
-        <div className="flex flex-wrap gap-3 mb-8">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => router.push("/dashboard/profile")}
-            className="flex items-center gap-2"
-          >
-            <Users className="w-4 h-4" />
-            Profile
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => appToasts.featureNotAvailable()}
-            className="flex items-center gap-2"
-          >
-            <BarChart3 className="w-4 h-4" />
-            Analytics
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => appToasts.featureNotAvailable()}
-            className="flex items-center gap-2"
-          >
-            <FileText className="w-4 h-4" />
-            Forms
-          </Button>
-        </div>
-        {/* Recent Activity Placeholder */}
-        <div className="bg-gray-50 rounded-lg p-8 text-center border border-gray-200">
-          <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            No forms yet
-          </h3>
-          <p className="text-gray-600 mb-4">
-            Create your first form to start collecting responses from your
-            audience.
-          </p>
-          <Button
-            onClick={() => successToasts.created("Form")}
-            className="bg-zinc-900 hover:bg-zinc-800"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Create Your First Form
-          </Button>
-        </div>
       </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Analytics Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <Card className="border-none bg-neutral-50">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Forms</CardTitle>
+              <FileText className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              {analyticsLoading ? (
+                <Skeleton className="h-8 w-16" />
+              ) : (
+                <div className="text-2xl font-bold">
+                  {analytics?.totalForms || 0}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="border-none bg-neutral-50">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Views</CardTitle>
+              <Eye className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              {analyticsLoading ? (
+                <Skeleton className="h-8 w-16" />
+              ) : (
+                <div className="text-2xl font-bold">
+                  {analytics?.totalViews || 0}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="border-none bg-neutral-50">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Total Submissions
+              </CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              {analyticsLoading ? (
+                <Skeleton className="h-8 w-16" />
+              ) : (
+                <div className="text-2xl font-bold">
+                  {analytics?.totalSubmissions || 0}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="border-none bg-neutral-50">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Conversion Rate
+              </CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              {analyticsLoading ? (
+                <Skeleton className="h-8 w-16" />
+              ) : (
+                <div className="text-2xl font-bold">
+                  {analytics?.averageConversionRate || 0}%
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Forms List */}
+        <Card className="border-none bg-neutral-50">
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <CardTitle>Your Forms</CardTitle>
+              <Button onClick={handleCreateForm} size="sm" className="gap-2">
+                <Plus className="w-4 h-4" />
+                New Form
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {formsLoading ? (
+              <div className="space-y-4">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between p-4 bg-white shadow-none rounded-xl"
+                  >
+                    <div className="space-y-2">
+                      <Skeleton className="h-5 w-48" />
+                      <Skeleton className="h-4 w-32" />
+                    </div>
+                    <div className="flex gap-2">
+                      <Skeleton className="h-8 w-8" />
+                      <Skeleton className="h-8 w-8" />
+                      <Skeleton className="h-8 w-8" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : formsError ? (
+              <div className="text-center py-8 text-red-600">
+                Error loading forms: {formsError}
+              </div>
+            ) : forms.length === 0 ? (
+              <div className="text-center py-12">
+                <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  No forms yet
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  Create your first form to start collecting responses
+                </p>
+                <Button onClick={handleCreateForm} className="gap-2">
+                  <Plus className="w-4 h-4" />
+                  Create Your First Form
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {forms.map((form) => (
+                  <div
+                    key={form.id}
+                    className="flex items-center justify-between p-4 bg-white shadow-none rounded-xl"
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="font-medium text-gray-900">
+                          {form.title}
+                        </h3>
+                        <div className="flex gap-2">
+                          {form.is_published ? (
+                            <Badge
+                              variant="default"
+                              className="bg-green-100 text-green-800"
+                            >
+                              Published
+                            </Badge>
+                          ) : (
+                            <Badge variant="secondary">Draft</Badge>
+                          )}
+                          {form.password_protected && (
+                            <Badge variant="outline">Protected</Badge>
+                          )}
+                        </div>
+                      </div>{" "}
+                      <div className="flex items-center gap-4 text-sm text-gray-600">
+                        <span className="flex items-center gap-1">
+                          <Eye className="w-4 h-4" />
+                          {(form as any)?.form_analytics?.[0]?.views || 0} views
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Users className="w-4 h-4" />
+                          {(form as any)?.form_analytics?.[0]?.submissions ||
+                            0}{" "}
+                          submissions
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Calendar className="w-4 h-4" />
+                          {new Date(form.created_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEditForm(form.id)}
+                        title="Edit form"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      {form.is_published && form.share_url && (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleViewForm(form.share_url!)}
+                            title="View form"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleCopyLink(form.share_url!)}
+                            title="Copy link"
+                          >
+                            <Copy className="w-4 h-4" />
+                          </Button>
+                        </>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteForm(form.id, form.title)}
+                        title="Delete form"
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Form</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{formToDelete?.title}"? This
+              action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeleteDialogOpen(false)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteForm}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

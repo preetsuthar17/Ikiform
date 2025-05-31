@@ -6,7 +6,16 @@ export class FormService {
   private baseUrl: string;
 
   constructor() {
-    this.baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    // In browser environment, use relative URLs (empty string)
+    // In server environment (like SSR), use the full URL
+    if (typeof window !== "undefined") {
+      this.baseUrl = "";
+    } else {
+      this.baseUrl =
+        process.env.NEXT_PUBLIC_APP_URL ||
+        process.env.NEXT_PUBLIC_SITE_URL ||
+        "http://localhost:3000";
+    }
   }
 
   // Form CRUD operations

@@ -10,6 +10,7 @@ import { Form, FormField } from "@/lib/types/forms";
 import { FormFieldRenderer } from "./FormFieldRenderer";
 import { cn } from "@/lib/utils";
 import { Eye, EyeOff, Smartphone, Monitor, Tablet } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface FormCanvasProps {
   form: Form | null;
@@ -19,6 +20,7 @@ interface FormCanvasProps {
   onFieldAdd: (field: Partial<FormField>, insertIndex?: number) => void;
   onFieldUpdate: (fieldId: string, updates: Partial<FormField>) => void;
   onFieldDelete: (fieldId: string) => void;
+  onFieldDuplicate: (fieldId: string) => void;
   onFieldMove: (fromIndex: number, toIndex: number) => void;
   previewMode: boolean;
   onPreviewToggle: () => void;
@@ -35,6 +37,7 @@ export function FormCanvas({
   onFieldAdd,
   onFieldUpdate,
   onFieldDelete,
+  onFieldDuplicate,
   onFieldMove,
   previewMode,
   onPreviewToggle,
@@ -50,6 +53,18 @@ export function FormCanvas({
         return "max-w-2xl";
       default:
         return "max-w-4xl";
+    }
+  };
+
+  const handleMoveUp = (index: number) => {
+    if (index > 0) {
+      onFieldMove(index, index - 1);
+    }
+  };
+
+  const handleMoveDown = (index: number) => {
+    if (index < fields.length - 1) {
+      onFieldMove(index, index + 1);
     }
   };
 
@@ -157,7 +172,12 @@ export function FormCanvas({
 
             <CardContent className="space-y-4">
               {fields.length === 0 ? (
-                <div className="min-h-32 border-2 border-dashed rounded-lg flex items-center justify-center bg-[#FAFAFA] border-[#E5E5E5]">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="min-h-32 border-2 border-dashed rounded-lg flex items-center justify-center bg-[#FAFAFA] border-[#E5E5E5]"
+                >
                   <div className="text-center text-[#717171] pointer-events-none">
                     <p className="font-medium">Start building your form</p>
                     <p className="text-sm mt-1">
@@ -165,21 +185,35 @@ export function FormCanvas({
                       form
                     </p>
                   </div>
-                </div>
+                </motion.div>
               ) : (
-                <>
-                  {fields.map((field) => (
-                    <FormFieldRenderer
-                      key={field.id}
-                      field={field}
-                      isSelected={selectedField === field.id}
-                      onSelect={() => onFieldSelect(field.id)}
-                      onUpdate={(updates) => onFieldUpdate(field.id, updates)}
-                      onDelete={() => onFieldDelete(field.id)}
-                      previewMode={previewMode}
-                    />
-                  ))}
-                </>
+                <motion.div
+                  layout
+                  className="space-y-4"
+                  transition={{
+                    layout: { type: "spring", stiffness: 400, damping: 25 },
+                  }}
+                >
+                  <AnimatePresence mode="popLayout">
+                    {fields.map((field, index) => (
+                      <FormFieldRenderer
+                        key={field.id}
+                        field={field}
+                        index={index}
+                        isSelected={selectedField === field.id}
+                        onSelect={() => onFieldSelect(field.id)}
+                        onUpdate={(updates) => onFieldUpdate(field.id, updates)}
+                        onDelete={() => onFieldDelete(field.id)}
+                        onDuplicate={() => onFieldDuplicate(field.id)}
+                        onMoveUp={() => handleMoveUp(index)}
+                        onMoveDown={() => handleMoveDown(index)}
+                        isFirst={index === 0}
+                        isLast={index === fields.length - 1}
+                        previewMode={previewMode}
+                      />
+                    ))}
+                  </AnimatePresence>
+                </motion.div>
               )}
             </CardContent>
           </Card>

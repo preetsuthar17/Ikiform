@@ -37,27 +37,40 @@ import {
   Upload,
   Calendar as CalendarIcon,
   Minus,
+  ChevronUp,
+  ChevronDown,
+  Settings,
 } from "lucide-react";
 import { format } from "date-fns";
 import FileUploadComponent from "@/components/ui/file-upload";
-
+import { motion, AnimatePresence } from "framer-motion";
 interface FormFieldRendererProps {
   field: FormField;
+  index: number;
   isSelected: boolean;
   onSelect: () => void;
   onUpdate: (updates: Partial<FormField>) => void;
   onDelete: () => void;
-  onDragStart?: () => void;
+  onDuplicate: () => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  isFirst: boolean;
+  isLast: boolean;
   previewMode: boolean;
 }
 
 export function FormFieldRenderer({
   field,
+  index,
   isSelected,
   onSelect,
   onUpdate,
   onDelete,
-  onDragStart,
+  onDuplicate,
+  onMoveUp,
+  onMoveDown,
+  isFirst,
+  isLast,
   previewMode,
 }: FormFieldRendererProps) {
   const [value, setValue] = useState<any>("");
@@ -285,100 +298,173 @@ export function FormFieldRenderer({
   };
 
   return (
-    <Card
-      className={cn(
-        "relative group transition-all duration-200 cursor-pointer",
-        isSelected
-          ? "ring-2 ring-[#2D2D2D] border-[#2D2D2D]"
-          : "border-[#E5E5E5] hover:border-[#4A4A4A]",
-        previewMode && "cursor-default"
-      )}
-      onClick={!previewMode ? onSelect : undefined}
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      transition={{
+        layout: { type: "spring", stiffness: 400, damping: 25 },
+        opacity: { duration: 0.2 },
+        y: { duration: 0.2 },
+      }}
     >
-      {/* Field Controls - Only visible in edit mode */}
-      {!previewMode && (
-        <div
-          className={cn(
-            "absolute -top-3 left-4 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-white rounded-lg border border-[#E5E5E5] z-10",
-            isSelected && "opacity-100"
+      <Card
+        className={cn(
+          "relative group transition-all duration-200 cursor-pointer",
+          isSelected
+            ? "ring-2 ring-[#2D2D2D] border-[#2D2D2D]"
+            : "border-[#E5E5E5] hover:border-[#4A4A4A]",
+          previewMode && "cursor-default"
+        )}
+        onClick={!previewMode ? onSelect : undefined}
+      >
+        {/* Field Controls - Only visible in edit mode */}
+        <AnimatePresence>
+          {!previewMode && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: -5 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: -5 }}
+              transition={{ duration: 0.15 }}
+              className={cn(
+                "absolute -top-3 left-4 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-white rounded-lg border border-[#E5E5E5] z-10 shadow-sm",
+                isSelected && "opacity-100"
+              )}
+            >
+              {/* Move Up Button */}
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onMoveUp();
+                  }}
+                  disabled={isFirst}
+                  title="Move up"
+                >
+                  <ChevronUp className="w-3 h-3" />
+                </Button>
+              </motion.div>
+
+              {/* Move Down Button */}
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onMoveDown();
+                  }}
+                  disabled={isLast}
+                  title="Move down"
+                >
+                  <ChevronDown className="w-3 h-3" />
+                </Button>
+              </motion.div>
+
+              {/* Field Settings Button */}
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSelect();
+                  }}
+                  title="Field settings"
+                >
+                  <Settings className="w-3 h-3" />
+                </Button>
+              </motion.div>
+
+              {/* Duplicate Button */}
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDuplicate();
+                  }}
+                  title="Duplicate field"
+                >
+                  <Copy className="w-3 h-3" />
+                </Button>
+              </motion.div>
+
+              {/* Delete Button */}
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete();
+                  }}
+                  title="Delete field"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </Button>
+              </motion.div>
+            </motion.div>
           )}
-        >
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-6 w-6 p-0 cursor-grab"
-            onMouseDown={onDragStart}
-          >
-            <GripVertical className="w-3 h-3" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-6 w-6 p-0"
-            onClick={(e) => {
-              e.stopPropagation();
-              // TODO: Open field settings
-            }}
-          >
-            <Edit className="w-3 h-3" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-6 w-6 p-0"
-            onClick={(e) => {
-              e.stopPropagation();
-              // TODO: Duplicate field
-            }}
-          >
-            <Copy className="w-3 h-3" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete();
-            }}
-          >
-            <Trash2 className="w-3 h-3" />
-          </Button>
-        </div>
-      )}
+        </AnimatePresence>
 
-      <CardContent className="p-4 space-y-3">
-        {/* Field Label */}
-        {field.field_type !== "section" && field.field_type !== "divider" && (
-          <div className="flex items-center gap-2">
-            <Label className="text-[#2D2D2D] font-medium">
-              {field.label}
-              {field.required && <span className="text-red-500 ml-1">*</span>}
-            </Label>
-            {!previewMode && (
-              <div className="flex items-center gap-1">
-                <Badge variant="outline" className="text-xs px-1 py-0">
-                  {field.field_type}
-                </Badge>
-                {field.conditional_logic.conditions &&
-                  field.conditional_logic.conditions.length > 0 && (
-                    <Badge variant="outline" className="text-xs px-1 py-0">
-                      Conditional
-                    </Badge>
-                  )}
-              </div>
-            )}
-          </div>
-        )}
+        <CardContent className="p-4 space-y-3">
+          {/* Field Label */}
+          {field.field_type !== "section" && field.field_type !== "divider" && (
+            <div className="flex items-center gap-2">
+              <Label className="text-[#2D2D2D] font-medium">
+                {field.label}
+                {field.required && <span className="text-red-500 ml-1">*</span>}
+              </Label>
+              {!previewMode && (
+                <div className="flex items-center gap-1">
+                  <Badge variant="outline" className="text-xs px-1 py-0">
+                    {field.field_type}
+                  </Badge>
+                  {field.conditional_logic.conditions &&
+                    field.conditional_logic.conditions.length > 0 && (
+                      <Badge variant="outline" className="text-xs px-1 py-0">
+                        Conditional
+                      </Badge>
+                    )}
+                </div>
+              )}
+            </div>
+          )}
 
-        {/* Field Input */}
-        {renderFieldContent()}
+          {/* Field Input */}
+          {renderFieldContent()}
 
-        {/* Field Description/Help Text */}
-        {field.placeholder && field.field_type !== "section" && (
-          <p className="text-xs text-[#717171]">{field.placeholder}</p>
-        )}
-      </CardContent>
-    </Card>
+          {/* Field Description/Help Text */}
+          {field.placeholder && field.field_type !== "section" && (
+            <p className="text-xs text-[#717171]">{field.placeholder}</p>
+          )}
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 }

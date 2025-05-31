@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { FIELD_TEMPLATES, FieldTemplate, FormField } from "@/lib/types/forms";
 import * as Icons from "lucide-react";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 
 interface FieldPaletteProps {
   className?: string;
@@ -44,35 +45,68 @@ export function FieldPalette({ className, onFieldAdd }: FieldPaletteProps) {
       </CardHeader>
       <CardContent className="p-0">
         <ScrollArea className="h-[calc(100vh-180px)] [mask-image:linear-gradient(to_bottom,transparent,black_16px,black_calc(100%-16px),transparent)]">
-          <div className="space-y-6 p-4">
-            {Object.entries(categories).map(([categoryName, fields]) => (
-              <div key={categoryName}>
-                <div className="flex items-center gap-2 mb-3">
-                  <h3 className="font-medium text-black/80 capitalize">
-                    {categoryName}
-                  </h3>
-                  <Badge
-                    variant="secondary"
-                    className="bg-gray-100 text-black/50"
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+            className="space-y-6 p-4"
+          >
+            {Object.entries(categories).map(
+              ([categoryName, fields], categoryIndex) => (
+                <motion.div
+                  key={categoryName}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{
+                    duration: 0.3,
+                    delay: categoryIndex * 0.1,
+                  }}
+                >
+                  <div className="flex items-center gap-2 mb-3">
+                    <h3 className="font-medium text-black/80 capitalize">
+                      {categoryName}
+                    </h3>
+                    <Badge
+                      variant="secondary"
+                      className="bg-gray-100 text-black/50"
+                    >
+                      {fields.length}
+                    </Badge>
+                  </div>
+
+                  <motion.div
+                    className="grid gap-2"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{
+                      duration: 0.2,
+                      delay: categoryIndex * 0.1 + 0.1,
+                      staggerChildren: 0.05,
+                    }}
                   >
-                    {fields.length}
-                  </Badge>
-                </div>
+                    {fields.map((template, fieldIndex) => (
+                      <motion.div
+                        key={template.type}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{
+                          duration: 0.2,
+                          delay: categoryIndex * 0.1 + fieldIndex * 0.03,
+                        }}
+                      >
+                        <FieldPaletteItem
+                          template={template}
+                          onClick={() => handleFieldClick(template)}
+                        />
+                      </motion.div>
+                    ))}
+                  </motion.div>
 
-                <div className="grid gap-2">
-                  {fields.map((template) => (
-                    <FieldPaletteItem
-                      key={template.type}
-                      template={template}
-                      onClick={() => handleFieldClick(template)}
-                    />
-                  ))}
-                </div>
-
-                {categoryName !== "payment" && <Separator className="mt-4" />}
-              </div>
-            ))}
-          </div>
+                  {categoryName !== "payment" && <Separator className="mt-4" />}
+                </motion.div>
+              )
+            )}
+          </motion.div>
         </ScrollArea>
       </CardContent>
     </Card>
@@ -90,17 +124,22 @@ function FieldPaletteItem({ template, onClick }: FieldPaletteItemProps) {
   ] as React.ComponentType<{ className?: string }>;
 
   return (
-    <div
+    <motion.div
+      whileHover={{ scale: 1.02, y: -1 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ type: "spring", stiffness: 400, damping: 17 }}
       onClick={onClick}
       className={cn(
         "group flex items-center gap-3 p-3 rounded-lg bg-white cursor-pointer transition-all duration-200",
-        "hover:border-black/20 border border-transparent",
-        "active:scale-95 active:bg-gray-50"
+        "hover:border-black/20 border border-transparent shadow-sm hover:shadow-md"
       )}
     >
-      <div className="flex-shrink-0 w-8 h-8 rounded-md bg-[#F5F5F5] flex items-center justify-center group-hover:bg-[#E5E5E5] transition-colors">
+      <motion.div
+        whileHover={{ rotate: 5 }}
+        className="flex-shrink-0 w-8 h-8 rounded-md bg-[#F5F5F5] flex items-center justify-center group-hover:bg-[#E5E5E5] transition-colors"
+      >
         {IconComponent && <IconComponent className="w-4 h-4 text-black/80" />}
-      </div>
+      </motion.div>
 
       <div className="flex-1 min-w-0">
         <div className="font-medium text-sm text-black/80 truncate">
@@ -110,6 +149,6 @@ function FieldPaletteItem({ template, onClick }: FieldPaletteItemProps) {
           {template.description}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

@@ -29,7 +29,11 @@ import {
   Eye,
   Zap,
   AlertCircle,
+  Crown,
 } from "lucide-react";
+// Premium system imports
+import { usePremium } from "@/lib/premium";
+import { PremiumGate } from "@/components/premium/PremiumComponents";
 
 interface FieldSettingsPanelProps {
   field: FormField | null;
@@ -45,6 +49,7 @@ export function FieldSettingsPanel({
   className,
 }: FieldSettingsPanelProps) {
   const [localField, setLocalField] = useState<FormField | null>(field);
+  const { hasFeature } = usePremium();
 
   useEffect(() => {
     setLocalField(field);
@@ -146,7 +151,16 @@ export function FieldSettingsPanel({
                 <TabsTrigger value="validation" disabled={!hasValidation}>
                   Validation
                 </TabsTrigger>
-                <TabsTrigger value="logic">Logic</TabsTrigger>
+                <TabsTrigger value="logic" className="flex items-center gap-2">
+                  Logic
+                  <Badge
+                    variant="outline"
+                    className="text-xs text-amber-600 border-amber-200 bg-amber-50"
+                  >
+                    <Crown className="w-3 h-3 mr-1" />
+                    Pro
+                  </Badge>
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="general" className="space-y-4 mt-4">
@@ -415,13 +429,265 @@ export function FieldSettingsPanel({
               </TabsContent>
 
               <TabsContent value="logic" className="space-y-4 mt-4">
-                <div className="text-center py-8 text-[#717171]">
-                  <Zap className="w-6 h-6 mx-auto mb-2" />
-                  <p className="text-sm font-medium">Conditional Logic</p>
-                  <p className="text-xs">
-                    Coming soon - Show/hide fields based on other field values
-                  </p>
-                </div>
+                <PremiumGate
+                  featureId="CONDITIONAL_LOGIC"
+                  fallback={
+                    <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 text-center">
+                      <Zap className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                      <p className="text-sm text-gray-600 mb-2">
+                        Conditional Logic
+                      </p>
+                      <p className="text-xs text-gray-500 mb-4">
+                        Upgrade to Pro to show/hide fields based on other field
+                        values and create dynamic forms
+                      </p>
+                      <div className="text-xs text-gray-400">
+                        • Show/hide fields conditionally
+                        <br />
+                        • Dynamic form branching
+                        <br />• Complex field dependencies
+                      </div>
+                    </div>
+                  }
+                >
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <Label className="flex items-center gap-2">
+                          <Zap className="w-4 h-4" />
+                          Enable Conditional Logic
+                        </Label>
+                        <p className="text-sm text-[#717171]">
+                          Show or hide this field based on other field values
+                        </p>
+                      </div>
+                      <Switch
+                        checked={
+                          localField?.conditional_logic?.show !== undefined
+                        }
+                        onCheckedChange={(enabled) =>
+                          updateLocalField({
+                            conditional_logic: enabled
+                              ? { show: true, conditions: [] }
+                              : undefined,
+                          })
+                        }
+                      />
+                    </div>
+
+                    {localField?.conditional_logic && (
+                      <div className="space-y-4 ml-6 p-4 bg-gray-50 rounded-xl">
+                        <div className="space-y-2">
+                          <Label>
+                            Show this field when conditions are met:
+                          </Label>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm">Show field:</span>
+                            <Select
+                              value={
+                                localField.conditional_logic.show
+                                  ? "true"
+                                  : "false"
+                              }
+                              onValueChange={(value) =>
+                                updateLocalField({
+                                  conditional_logic: {
+                                    ...localField.conditional_logic,
+                                    show: value === "true",
+                                  },
+                                })
+                              }
+                            >
+                              <SelectTrigger className="bg-white shadow-none rounded-xl w-32">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="true">Show</SelectItem>
+                                <SelectItem value="false">Hide</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <span className="text-sm">
+                              when conditions match
+                            </span>
+                          </div>
+                        </div>
+
+                        {localField.conditional_logic.conditions &&
+                        localField.conditional_logic.conditions.length > 0 ? (
+                          <div className="space-y-3">
+                            {localField.conditional_logic.conditions.map(
+                              (condition, index) => (
+                                <div
+                                  key={index}
+                                  className="grid grid-cols-4 gap-2 p-3 bg-white rounded-lg border"
+                                >
+                                  <Select
+                                    value={condition.field_id || ""}
+                                    onValueChange={(field_id) => {
+                                      const updatedConditions = [
+                                        ...(localField.conditional_logic
+                                          ?.conditions || []),
+                                      ];
+                                      updatedConditions[index] = {
+                                        ...condition,
+                                        field_id,
+                                      };
+                                      updateLocalField({
+                                        conditional_logic: {
+                                          ...localField.conditional_logic,
+                                          conditions: updatedConditions,
+                                        },
+                                      });
+                                    }}
+                                  >
+                                    <SelectTrigger className="bg-white shadow-none rounded-xl">
+                                      <SelectValue placeholder="Field" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="field1">
+                                        Field 1
+                                      </SelectItem>
+                                      <SelectItem value="field2">
+                                        Field 2
+                                      </SelectItem>
+                                      <SelectItem value="field3">
+                                        Field 3
+                                      </SelectItem>
+                                    </SelectContent>
+                                  </Select>
+
+                                  <Select
+                                    value={condition.operator}
+                                    onValueChange={(operator: any) => {
+                                      const updatedConditions = [
+                                        ...(localField.conditional_logic
+                                          ?.conditions || []),
+                                      ];
+                                      updatedConditions[index] = {
+                                        ...condition,
+                                        operator,
+                                      };
+                                      updateLocalField({
+                                        conditional_logic: {
+                                          ...localField.conditional_logic,
+                                          conditions: updatedConditions,
+                                        },
+                                      });
+                                    }}
+                                  >
+                                    <SelectTrigger className="bg-white shadow-none rounded-xl">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="equals">
+                                        Equals
+                                      </SelectItem>
+                                      <SelectItem value="not_equals">
+                                        Not equals
+                                      </SelectItem>
+                                      <SelectItem value="contains">
+                                        Contains
+                                      </SelectItem>
+                                      <SelectItem value="greater_than">
+                                        Greater than
+                                      </SelectItem>
+                                      <SelectItem value="less_than">
+                                        Less than
+                                      </SelectItem>
+                                      <SelectItem value="is_empty">
+                                        Is empty
+                                      </SelectItem>
+                                      <SelectItem value="is_not_empty">
+                                        Is not empty
+                                      </SelectItem>
+                                    </SelectContent>
+                                  </Select>
+
+                                  <Input
+                                    className="bg-white shadow-none py-5 rounded-xl border"
+                                    value={condition.value || ""}
+                                    onChange={(e) => {
+                                      const updatedConditions = [
+                                        ...(localField.conditional_logic
+                                          ?.conditions || []),
+                                      ];
+                                      updatedConditions[index] = {
+                                        ...condition,
+                                        value: e.target.value,
+                                      };
+                                      updateLocalField({
+                                        conditional_logic: {
+                                          ...localField.conditional_logic,
+                                          conditions: updatedConditions,
+                                        },
+                                      });
+                                    }}
+                                    placeholder="Value"
+                                  />
+
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                      const updatedConditions = (
+                                        localField.conditional_logic
+                                          ?.conditions || []
+                                      ).filter((_, i) => i !== index);
+                                      updateLocalField({
+                                        conditional_logic: {
+                                          ...localField.conditional_logic,
+                                          conditions: updatedConditions,
+                                        },
+                                      });
+                                    }}
+                                    className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                  </Button>
+                                </div>
+                              )
+                            )}
+                          </div>
+                        ) : (
+                          <div className="text-center py-4 text-gray-500">
+                            <p className="text-sm">No conditions set</p>
+                          </div>
+                        )}
+
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const newCondition = {
+                              field_id: "",
+                              operator: "equals" as const,
+                              value: "",
+                            };
+                            updateLocalField({
+                              conditional_logic: {
+                                ...localField.conditional_logic,
+                                conditions: [
+                                  ...(localField.conditional_logic
+                                    ?.conditions || []),
+                                  newCondition,
+                                ],
+                              },
+                            });
+                          }}
+                          className="gap-2"
+                        >
+                          <Plus className="w-4 h-4" />
+                          Add Condition
+                        </Button>
+
+                        <div className="text-xs text-gray-500 bg-blue-50 p-3 rounded-lg">
+                          <strong>Example:</strong> Show this field when "Email
+                          Preferences" equals "Newsletter"
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </PremiumGate>
               </TabsContent>
             </Tabs>
           </div>

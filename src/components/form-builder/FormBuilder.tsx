@@ -19,15 +19,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import {
-  Save,
-  Eye,
-  Share,
-  Settings,
-  MoreVertical,
-  ChevronLeft,
-  Loader2,
-} from "lucide-react";
+import { Save, Eye, Share, Settings, ChevronLeft, Loader2 } from "lucide-react";
+import { usePremium } from "@/lib/premium";
 
 interface FormBuilderProps {
   initialForm?: Form;
@@ -42,6 +35,10 @@ export function FormBuilder({
   onFormPublished,
   className,
 }: FormBuilderProps) {
+  // Premium integration
+  const { hasFeature, usageLimits, checkUsageLimit, currentPlan } =
+    usePremium();
+
   // Form state
   const [form, setForm] = useState<Form | null>(initialForm || null);
   const [fields, setFields] = useState<FormField[]>(initialForm?.fields || []);
@@ -89,11 +86,29 @@ export function FormBuilder({
 
   const addField = useCallback(
     (fieldData: Partial<FormField>, insertIndex?: number) => {
+      // Check if field type requires premium
+      const fieldType = fieldData.field_type || "text";
+
+      // Check if file upload field requires premium
+      if (fieldType === "file" && !hasFeature("FILE_UPLOADS")) {
+        toast.error("File upload fields require a premium subscription");
+        return;
+      }
+
+      // Check if user has reached field limit
+      const currentFieldCount = fields.length;
+      if (!checkUsageLimit("forms", currentFieldCount)) {
+        toast.error(
+          `You've reached the maximum number of fields (${usageLimits.forms}) for your ${currentPlan} plan`
+        );
+        return;
+      }
+
       const newField: FormField = {
         id: `field-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         form_id: form?.id || "",
-        field_type: fieldData.field_type || "text",
-        label: fieldData.label || `New ${fieldData.field_type || "text"} field`,
+        field_type: fieldType,
+        label: fieldData.label || `New ${fieldType} field`,
         placeholder: fieldData.placeholder,
         options: fieldData.options || [],
         required: fieldData.required || false,
@@ -120,7 +135,7 @@ export function FormBuilder({
       setSelectedField(newField.id);
       toast.success("Field added successfully");
     },
-    [form?.id, fields]
+    [form?.id, fields, hasFeature, checkUsageLimit, usageLimits, currentPlan]
   );
 
   const updateField = useCallback(
@@ -455,6 +470,7 @@ export function FormBuilder({
               onFieldAdd={addField}
               onFieldUpdate={updateField}
               onFieldDelete={deleteField}
+              onFieldDuplicate={duplicateField}
               onFieldMove={moveField}
               previewMode={previewMode}
               onPreviewToggle={() => setPreviewMode(!previewMode)}

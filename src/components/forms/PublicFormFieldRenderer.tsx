@@ -228,6 +228,25 @@ export function PublicFormFieldRenderer({
           </div>
         );
 
+      case "section":
+        return (
+          <div className="text-center py-6">
+            <h3 className="text-lg font-semibold text-gray-900">
+              {field.label}
+            </h3>
+            {field.placeholder && (
+              <p className="text-gray-600 mt-2">{field.placeholder}</p>
+            )}
+          </div>
+        );
+
+      case "divider":
+        return (
+          <div className="flex items-center py-4">
+            <div className="flex-grow border-t border-gray-300"></div>
+          </div>
+        );
+
       default:
         return (
           <div className="p-4 border border-dashed border-gray-300 rounded-lg text-center text-gray-500">

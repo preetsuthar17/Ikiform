@@ -47,11 +47,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { usePremium } from "@/lib/premium";
+import { PremiumGate } from "@/components/premium/PremiumComponents";
 
 export default function FormAnalyticsPage() {
   const params = useParams();
   const router = useRouter();
   const formId = params.formId as string;
+
+  // Premium integration
+  const { hasFeature } = usePremium();
 
   const { form, loading: formLoading } = useForm(formId);
   const { analytics, loading: analyticsLoading } = useFormAnalytics(formId);
@@ -100,6 +105,12 @@ export default function FormAnalyticsPage() {
     : [];
 
   const handleExportData = async (format: "csv" | "json") => {
+    // Check premium access for export functionality
+    if (!hasFeature("EXPORT_RESPONSES")) {
+      toast.error("Export functionality requires a premium plan");
+      return;
+    }
+
     try {
       const blob = await formService.exportFormData(formId, format);
       const url = URL.createObjectURL(blob);
@@ -167,6 +178,39 @@ export default function FormAnalyticsPage() {
   }
 
   const loading = analyticsLoading || responsesLoading;
+
+  // Premium gate for analytics
+  if (!hasFeature("ADVANCED_ANALYTICS")) {
+    return (
+      <div className="container mx-auto py-8 px-4">
+        <div className="flex flex-col gap-4 mb-8">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push("/dashboard/forms")}
+            className="gap-2 self-start"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Forms
+          </Button>
+        </div>
+
+        <PremiumGate
+          featureId="ADVANCED_ANALYTICS"
+          fallback={
+            <div className="text-center py-12">
+              <BarChart3 className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+              <h3 className="text-xl font-semibold mb-2">Advanced Analytics</h3>
+              <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                Get detailed insights about your form performance, submission
+                analytics, and export capabilities with a premium plan.
+              </p>
+            </div>
+          }
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto py-8 px-4">
@@ -643,32 +687,70 @@ export default function FormAnalyticsPage() {
                 formats.
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <Button
-                  variant="outline"
-                  onClick={() => handleExportData("csv")}
-                  className="gap-2 w-full"
-                  disabled={!responses || responses.length === 0}
-                >
-                  <Download className="w-4 h-4" />
-                  Export CSV
-                </Button>
+              {hasFeature("EXPORT_RESPONSES") ? (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <Button
+                      variant="outline"
+                      onClick={() => handleExportData("csv")}
+                      className="gap-2 w-full"
+                      disabled={!responses || responses.length === 0}
+                    >
+                      <Download className="w-4 h-4" />
+                      Export CSV
+                    </Button>
 
-                <Button
-                  variant="outline"
-                  onClick={() => handleExportData("json")}
-                  className="gap-2 w-full"
-                  disabled={!responses || responses.length === 0}
-                >
-                  <Download className="w-4 h-4" />
-                  Export JSON
-                </Button>
-              </div>
+                    <Button
+                      variant="outline"
+                      onClick={() => handleExportData("json")}
+                      className="gap-2 w-full"
+                      disabled={!responses || responses.length === 0}
+                    >
+                      <Download className="w-4 h-4" />
+                      Export JSON
+                    </Button>
+                  </div>
 
-              {responses && responses.length > 0 && (
-                <div className="text-xs text-[#717171] mt-3">
-                  Last export: {format(new Date(), "MMM dd, yyyy")}
-                </div>
+                  {responses && responses.length > 0 && (
+                    <div className="text-xs text-[#717171] mt-3">
+                      Last export: {format(new Date(), "MMM dd, yyyy")}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <PremiumGate
+                  featureId="EXPORT_RESPONSES"
+                  fallback={
+                    <div className="text-center py-6">
+                      <Download className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                      <h4 className="font-medium text-gray-900 mb-2">
+                        Export Responses
+                      </h4>
+                      <p className="text-sm text-gray-600 mb-4">
+                        Export your form responses to CSV or JSON formats with a
+                        premium plan.
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <Button
+                          variant="outline"
+                          disabled
+                          className="gap-2 w-full opacity-50"
+                        >
+                          <Download className="w-4 h-4" />
+                          Export CSV
+                        </Button>
+                        <Button
+                          variant="outline"
+                          disabled
+                          className="gap-2 w-full opacity-50"
+                        >
+                          <Download className="w-4 h-4" />
+                          Export JSON
+                        </Button>
+                      </div>
+                    </div>
+                  }
+                />
               )}
             </div>
           </CardContent>

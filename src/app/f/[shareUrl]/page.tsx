@@ -389,10 +389,16 @@ export default function PublicFormPage() {
               {/* Form fields */}
               {form.form_fields.map((field) => (
                 <div key={field.id} className="space-y-2">
-                  <label className="text-sm font-medium text-[#2D2D2D] flex items-center gap-1">
-                    {field.label}
-                    {field.required && <span className="text-red-500">*</span>}
-                  </label>
+                  {/* Only render label for regular fields, not section/divider */}
+                  {field.field_type !== "section" &&
+                    field.field_type !== "divider" && (
+                      <label className="text-sm font-medium text-[#2D2D2D] flex items-center gap-1">
+                        {field.label}
+                        {field.required && (
+                          <span className="text-red-500">*</span>
+                        )}
+                      </label>
+                    )}
                   <PublicFormFieldRenderer
                     field={field}
                     value={responses[field.id]}

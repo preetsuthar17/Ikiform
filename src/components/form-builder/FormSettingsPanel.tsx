@@ -46,6 +46,11 @@ import {
   Webhook,
   Timer,
 } from "lucide-react";
+// Premium system imports
+import { usePremium } from "@/lib/premium";
+import { PremiumGate } from "@/components/premium/PremiumComponents";
+import { toast } from "sonner";
+import { Crown } from "lucide-react";
 
 interface FormSettingsPanelProps {
   form: Form;
@@ -60,6 +65,7 @@ export function FormSettingsPanel({
 }: FormSettingsPanelProps) {
   const [localForm, setLocalForm] = useState(form);
   const [isDirty, setIsDirty] = useState(false);
+  const { hasFeature } = usePremium();
 
   useEffect(() => {
     setLocalForm(form);
@@ -215,135 +221,167 @@ export function FormSettingsPanel({
                     <CardTitle className="flex items-center gap-2">
                       <Palette className="w-5 h-5" />
                       Theme & Appearance
+                      <Badge
+                        variant="outline"
+                        className="text-xs text-amber-600 border-amber-200 bg-amber-50"
+                      >
+                        <Crown className="w-3 h-3 mr-1" />
+                        Premium
+                      </Badge>
                     </CardTitle>
                     <CardDescription>
                       Customize your form's visual appearance.
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="flex flex-col gap-4">
-                    <div className="flex flex-col gap-4">
-                      <Label>Primary Color</Label>
-                      <div className="flex gap-2">
-                        <Input
-                          className="bg-white shadow-none py-5 rounded-xl border w-20 h-10 p-1"
-                          type="color"
-                          value={
-                            localForm.settings.theme?.primaryColor || "#2D2D2D"
-                          }
-                          onChange={(e) =>
-                            updateSettings({
-                              theme: {
-                                ...localForm.settings.theme,
-                                primaryColor: e.target.value,
-                              },
-                            })
-                          }
-                        />
-                        <Input
-                          className="bg-white shadow-none py-5 rounded-xl border"
-                          value={
-                            localForm.settings.theme?.primaryColor || "#2D2D2D"
-                          }
-                          onChange={(e) =>
-                            updateSettings({
-                              theme: {
-                                ...localForm.settings.theme,
-                                primaryColor: e.target.value,
-                              },
-                            })
-                          }
-                          placeholder="#2D2D2D"
-                        />
+                    <PremiumGate
+                      featureId="CUSTOM_BRANDING"
+                      fallback={
+                        <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 text-center">
+                          <Palette className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                          <p className="text-sm text-gray-600 mb-2">
+                            Custom Branding
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            Upgrade to customize your form's theme, colors, and
+                            branding
+                          </p>
+                        </div>
+                      }
+                    >
+                      <div className="flex flex-col gap-4">
+                        <Label>Primary Color</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            className="bg-white shadow-none py-5 rounded-xl border w-20 h-10 p-1"
+                            type="color"
+                            value={
+                              localForm.settings.theme?.primaryColor ||
+                              "#2D2D2D"
+                            }
+                            onChange={(e) =>
+                              updateSettings({
+                                theme: {
+                                  ...localForm.settings.theme,
+                                  primaryColor: e.target.value,
+                                },
+                              })
+                            }
+                          />
+                          <Input
+                            className="bg-white shadow-none py-5 rounded-xl border"
+                            value={
+                              localForm.settings.theme?.primaryColor ||
+                              "#2D2D2D"
+                            }
+                            onChange={(e) =>
+                              updateSettings({
+                                theme: {
+                                  ...localForm.settings.theme,
+                                  primaryColor: e.target.value,
+                                },
+                              })
+                            }
+                            placeholder="#2D2D2D"
+                          />
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="flex flex-col gap-4">
-                      <Label>Background Color</Label>
-                      <div className="flex gap-2">
-                        <Input
-                          className="bg-white shadow-none py-5 rounded-xl border w-20 h-10 p-1"
-                          type="color"
-                          value={
-                            localForm.settings.theme?.backgroundColor ||
-                            "#FFFFFF"
-                          }
-                          onChange={(e) =>
-                            updateSettings({
-                              theme: {
-                                ...localForm.settings.theme,
-                                backgroundColor: e.target.value,
-                              },
-                            })
-                          }
-                        />
-                        <Input
-                          className="bg-white shadow-none py-5 rounded-xl border"
-                          value={
-                            localForm.settings.theme?.backgroundColor ||
-                            "#FFFFFF"
-                          }
-                          onChange={(e) =>
-                            updateSettings({
-                              theme: {
-                                ...localForm.settings.theme,
-                                backgroundColor: e.target.value,
-                              },
-                            })
-                          }
-                          placeholder="#FFFFFF"
-                        />
+                      <div className="flex flex-col gap-4">
+                        <Label>Background Color</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            className="bg-white shadow-none py-5 rounded-xl border w-20 h-10 p-1"
+                            type="color"
+                            value={
+                              localForm.settings.theme?.backgroundColor ||
+                              "#FFFFFF"
+                            }
+                            onChange={(e) =>
+                              updateSettings({
+                                theme: {
+                                  ...localForm.settings.theme,
+                                  backgroundColor: e.target.value,
+                                },
+                              })
+                            }
+                          />
+                          <Input
+                            className="bg-white shadow-none py-5 rounded-xl border"
+                            value={
+                              localForm.settings.theme?.backgroundColor ||
+                              "#FFFFFF"
+                            }
+                            onChange={(e) =>
+                              updateSettings({
+                                theme: {
+                                  ...localForm.settings.theme,
+                                  backgroundColor: e.target.value,
+                                },
+                              })
+                            }
+                            placeholder="#FFFFFF"
+                          />
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="flex flex-col gap-4">
-                      <Label>Font Family</Label>
-                      <Select
-                        value={localForm.settings.theme?.fontFamily || "system"}
-                        onValueChange={(fontFamily) =>
-                          updateSettings({
-                            theme: { ...localForm.settings.theme, fontFamily },
-                          })
-                        }
-                      >
-                        <SelectTrigger className="shadow-none bg-white rounded-xl">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="shadow-none bg-white rounded-xl">
-                          <SelectItem value="system">System Default</SelectItem>
-                          <SelectItem value="inter">Inter</SelectItem>
-                          <SelectItem value="roboto">Roboto</SelectItem>
-                          <SelectItem value="opensans">Open Sans</SelectItem>
-                          <SelectItem value="lato">Lato</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                      <div className="flex flex-col gap-4">
+                        <Label>Font Family</Label>
+                        <Select
+                          value={
+                            localForm.settings.theme?.fontFamily || "system"
+                          }
+                          onValueChange={(fontFamily) =>
+                            updateSettings({
+                              theme: {
+                                ...localForm.settings.theme,
+                                fontFamily,
+                              },
+                            })
+                          }
+                        >
+                          <SelectTrigger className="shadow-none bg-white rounded-xl">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="shadow-none bg-white rounded-xl">
+                            <SelectItem value="system">
+                              System Default
+                            </SelectItem>
+                            <SelectItem value="inter">Inter</SelectItem>
+                            <SelectItem value="roboto">Roboto</SelectItem>
+                            <SelectItem value="opensans">Open Sans</SelectItem>
+                            <SelectItem value="lato">Lato</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
 
-                    <div className="flex flex-col gap-4">
-                      <Label>Spacing</Label>
-                      <Select
-                        value={localForm.settings.theme?.spacing || "normal"}
-                        onValueChange={(spacing) =>
-                          updateSettings({
-                            theme: {
-                              ...localForm.settings.theme,
-                              spacing: spacing as
-                                | "compact"
-                                | "normal"
-                                | "spacious",
-                            },
-                          })
-                        }
-                      >
-                        <SelectTrigger className="shadow-none bg-white rounded-xl">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="shadow-none bg-white rounded-xl">
-                          <SelectItem value="compact">Compact</SelectItem>
-                          <SelectItem value="normal">Normal</SelectItem>
-                          <SelectItem value="spacious">Spacious</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                      <div className="flex flex-col gap-4">
+                        <Label>Spacing</Label>
+                        <Select
+                          value={localForm.settings.theme?.spacing || "normal"}
+                          onValueChange={(spacing) =>
+                            updateSettings({
+                              theme: {
+                                ...localForm.settings.theme,
+                                spacing: spacing as
+                                  | "compact"
+                                  | "normal"
+                                  | "spacious",
+                              },
+                            })
+                          }
+                        >
+                          <SelectTrigger className="shadow-none bg-white rounded-xl">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="shadow-none bg-white rounded-xl">
+                            <SelectItem value="compact">Compact</SelectItem>
+                            <SelectItem value="normal">Normal</SelectItem>
+                            <SelectItem value="spacious">Spacious</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </PremiumGate>
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -462,6 +500,13 @@ export function FormSettingsPanel({
                     <CardTitle className="flex items-center gap-2">
                       <Bell className="w-5 h-5" />
                       Notifications
+                      <Badge
+                        variant="outline"
+                        className="text-xs text-amber-600 border-amber-200 bg-amber-50"
+                      >
+                        <Crown className="w-3 h-3 mr-1" />
+                        Premium
+                      </Badge>
                     </CardTitle>
                     <CardDescription>
                       Set up notifications for new form submissions.
@@ -497,23 +542,41 @@ export function FormSettingsPanel({
                         <Webhook className="w-4 h-4" />
                         Webhook URL
                       </Label>
-                      <Input
-                        className="bg-white shadow-none py-5 rounded-xl border"
-                        value={localForm.settings.notifications?.webhook || ""}
-                        onChange={(e) =>
-                          updateSettings({
-                            notifications: {
-                              ...localForm.settings.notifications,
-                              webhook: e.target.value,
-                            },
-                          })
+                      <PremiumGate
+                        featureId="WEBHOOK_INTEGRATIONS"
+                        fallback={
+                          <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 text-center">
+                            <Webhook className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                            <p className="text-sm text-gray-600 mb-2">
+                              Webhook Integrations
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              Upgrade to send form data directly to your
+                              applications via webhooks
+                            </p>
+                          </div>
                         }
-                        placeholder="https://your-app.com/webhook"
-                        type="url"
-                      />
-                      <p className="text-sm text-[#717171]">
-                        Send form data to your application via HTTP POST
-                      </p>
+                      >
+                        <Input
+                          className="bg-white shadow-none py-5 rounded-xl border"
+                          value={
+                            localForm.settings.notifications?.webhook || ""
+                          }
+                          onChange={(e) =>
+                            updateSettings({
+                              notifications: {
+                                ...localForm.settings.notifications,
+                                webhook: e.target.value,
+                              },
+                            })
+                          }
+                          placeholder="https://your-app.com/webhook"
+                          type="url"
+                        />
+                        <p className="text-sm text-[#717171]">
+                          Send form data to your application via HTTP POST
+                        </p>
+                      </PremiumGate>
                     </div>
                   </CardContent>
                 </Card>
@@ -528,6 +591,13 @@ export function FormSettingsPanel({
                     <CardTitle className="flex items-center gap-2">
                       <Shield className="w-5 h-5" />
                       Security & Protection
+                      <Badge
+                        variant="outline"
+                        className="text-xs text-amber-600 border-amber-200 bg-amber-50"
+                      >
+                        <Crown className="w-3 h-3 mr-1" />
+                        Premium
+                      </Badge>
                     </CardTitle>
                     <CardDescription>
                       Protect your form from spam and unauthorized access.
@@ -565,74 +635,93 @@ export function FormSettingsPanel({
 
                     <Separator />
 
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-1">
-                        <Label>Enable CAPTCHA</Label>
+                    <PremiumGate
+                      featureId="ADVANCED_SECURITY"
+                      fallback={
+                        <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 text-center">
+                          <Shield className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                          <p className="text-sm text-gray-600 mb-2">
+                            Advanced Security Features
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            Upgrade to enable CAPTCHA, IP limiting, and time
+                            restrictions
+                          </p>
+                        </div>
+                      }
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                          <Label>Enable CAPTCHA</Label>
+                          <p className="text-sm text-[#717171]">
+                            Add CAPTCHA verification to prevent spam
+                          </p>
+                        </div>
+                        <Switch
+                          checked={
+                            localForm.settings.security?.captcha || false
+                          }
+                          onCheckedChange={(captcha) =>
+                            updateSettings({
+                              security: {
+                                ...localForm.settings.security,
+                                captcha,
+                              },
+                            })
+                          }
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                          <Label>IP Address Limiting</Label>
+                          <p className="text-sm text-[#717171]">
+                            Prevent multiple submissions from the same IP
+                          </p>
+                        </div>
+                        <Switch
+                          checked={
+                            localForm.settings.security?.ipLimiting || false
+                          }
+                          onCheckedChange={(ipLimiting) =>
+                            updateSettings({
+                              security: {
+                                ...localForm.settings.security,
+                                ipLimiting,
+                              },
+                            })
+                          }
+                        />
+                      </div>
+
+                      <div className="flex flex-col gap-4">
+                        <Label className="flex items-center gap-2">
+                          <Timer className="w-4 h-4" />
+                          Time Limit (minutes)
+                        </Label>
+                        <Input
+                          className="bg-white shadow-none py-5 rounded-xl border"
+                          type="number"
+                          value={localForm.settings.security?.timeLimit || ""}
+                          onChange={(e) =>
+                            updateSettings({
+                              security: {
+                                ...localForm.settings.security,
+                                timeLimit:
+                                  parseInt(e.target.value) || undefined,
+                              },
+                            })
+                          }
+                          placeholder="30"
+                          min="1"
+                          max="1440"
+                        />
                         <p className="text-sm text-[#717171]">
-                          Add CAPTCHA verification to prevent spam
+                          Maximum time allowed to complete the form (leave empty
+                          for no limit)
                         </p>
                       </div>
-                      <Switch
-                        checked={localForm.settings.security?.captcha || false}
-                        onCheckedChange={(captcha) =>
-                          updateSettings({
-                            security: {
-                              ...localForm.settings.security,
-                              captcha,
-                            },
-                          })
-                        }
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-1">
-                        <Label>IP Address Limiting</Label>
-                        <p className="text-sm text-[#717171]">
-                          Prevent multiple submissions from the same IP
-                        </p>
-                      </div>
-                      <Switch
-                        checked={
-                          localForm.settings.security?.ipLimiting || false
-                        }
-                        onCheckedChange={(ipLimiting) =>
-                          updateSettings({
-                            security: {
-                              ...localForm.settings.security,
-                              ipLimiting,
-                            },
-                          })
-                        }
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-4">
-                      <Label className="flex items-center gap-2">
-                        <Timer className="w-4 h-4" />
-                        Time Limit (minutes)
-                      </Label>
-                      <Input
-                        className="bg-white shadow-none py-5 rounded-xl border"
-                        type="number"
-                        value={localForm.settings.security?.timeLimit || ""}
-                        onChange={(e) =>
-                          updateSettings({
-                            security: {
-                              ...localForm.settings.security,
-                              timeLimit: parseInt(e.target.value) || undefined,
-                            },
-                          })
-                        }
-                        placeholder="30"
-                        min="1"
-                        max="1440"
-                      />
-                      <p className="text-sm text-[#717171]">
-                        Maximum time allowed to complete the form (leave empty
-                        for no limit)
-                      </p>
-                    </div>
+                    </PremiumGate>
                   </CardContent>
                 </Card>
               </TabsContent>

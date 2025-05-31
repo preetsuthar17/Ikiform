@@ -50,11 +50,11 @@ interface RouteParams {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { formId: string } }
+  { params }: { params: Promise<{ formId: string }> }
 ) {
   try {
     const supabase = await createClient();
-    const { formId } = params;
+    const { formId } = await params;
 
     // Get current user
     const {

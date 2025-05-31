@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
-interface RouteParams {
-  params: {
-    formId: string;
-  };
-}
-
 /**
  * Handles the GET request to fetch analytics data for a specific form.
  *
@@ -165,10 +159,13 @@ export async function GET(
   }
 }
 
-export async function POST(request: NextRequest, { params }: RouteParams) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ formId: string }> }
+) {
   try {
     const supabase = await createClient();
-    const { formId } = params;
+    const { formId } = await params;
 
     // Get current user
     const {

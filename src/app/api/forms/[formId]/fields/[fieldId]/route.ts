@@ -1,12 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { FormField } from "@/lib/types/forms";
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     formId: string;
     fieldId: string;
-  };
+  }>;
 }
 
 /**
@@ -25,7 +26,7 @@ interface RouteParams {
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const supabase = await createClient();
-    const { formId, fieldId } = params;
+    const { formId, fieldId } = await params;
 
     // Get current user
     const {
@@ -84,7 +85,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const supabase = await createClient();
-    const { formId, fieldId } = params;
+    const { formId, fieldId } = await params;
 
     // Get current user
     const {
@@ -164,7 +165,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const supabase = await createClient();
-    const { formId, fieldId } = params;
+    const { formId, fieldId } = await params;
 
     // Get current user
     const {

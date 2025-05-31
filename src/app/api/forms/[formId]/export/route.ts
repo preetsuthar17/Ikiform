@@ -1,17 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-
-interface RouteParams {
-  params: {
-    formId: string;
-  };
-}
 
 /**
  * Handles the GET request to export form data in either JSON or CSV format.
  *
  * @param request - The incoming Next.js request object.
- * @param params - The route parameters containing the `formId`.
+ * @param context - The route context containing params with the `formId`.
  * @returns A `NextResponse` containing the exported form data in the requested format
  *          (JSON or CSV) or an error response if the operation fails.
  *
@@ -38,10 +33,13 @@ interface RouteParams {
  * - Export form data as CSV:
  *   `/api/forms/{formId}/export?format=csv`
  */
-export async function GET(request: NextRequest, { params }: RouteParams) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ formId: string }> }
+) {
   try {
     const supabase = await createClient();
-    const { formId } = params;
+    const { formId } = await params;
     const { searchParams } = new URL(request.url);
     const format = searchParams.get("format") || "csv";
 
@@ -181,7 +179,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
  * Handles the POST request to export form responses based on the provided filters and format.
  *
  * @param request - The incoming HTTP request object.
- * @param params - The route parameters containing the `formId`.
+ * @param context - The route context containing params with the `formId`.
  * @returns A JSON response indicating the status of the export operation.
  *
  * @remarks
@@ -194,10 +192,13 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
  * @throws Returns a 404 status if the form is not found or the user does not own the form.
  * @throws Returns a 500 status if there is an error during the export process.
  */
-export async function POST(request: NextRequest, { params }: RouteParams) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ formId: string }> }
+) {
   try {
     const supabase = await createClient();
-    const { formId } = params;
+    const { formId } = await params;
 
     // Get current user
     const {

@@ -3,73 +3,15 @@ import { createClient } from "@/lib/supabase/server";
 import { FormResponse } from "@/lib/types/forms";
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     formId: string;
-  };
+  }>;
 }
-
-/**
- * Handles the submission of a form and retrieves form responses.
- *
- * ### POST Method:
- * Processes form submissions by validating input, storing responses, and updating analytics.
- *
- * @function POST
- * @param {NextRequest} request - The incoming HTTP request containing form submission data.
- * @param {RouteParams} params - Route parameters including the `formId`.
- * @returns {Promise<NextResponse>} A JSON response indicating the result of the form submission.
- *
- * #### POST Behavior:
- * - Retrieves form details from the database and ensures the form is published.
- * - Validates password protection if the form is password-protected.
- * - Checks for missing required fields and validates field values based on their types and custom rules.
- * - Stores the form response in the database and updates form analytics.
- *
- * #### POST Possible Responses:
- * - `200 OK`: Form submitted successfully with the response ID.
- * - `400 Bad Request`: Validation failed or required fields are missing.
- * - `401 Unauthorized`: Password is required or invalid.
- * - `404 Not Found`: Form not found or not published.
- * - `500 Internal Server Error`: An unexpected error occurred during submission.
- *
- * #### POST Validation Rules:
- * - Email fields must match a valid email format.
- * - Number fields must contain valid numeric values.
- * - URL fields must contain valid URLs.
- * - Phone fields must match a valid phone number format.
- * - Custom validation rules (e.g., min/max length, regex patterns) are applied if specified.
- *
- * #### POST Metadata:
- * - Includes additional information such as IP address, user agent, and completion time.
- *
- * #### POST Analytics:
- * - Updates form analytics with the number of submissions, average completion time, and conversion rate.
- *
- * ---
- *
- * ### GET Method:
- * Retrieves all responses for a specific form.
- *
- * @function GET
- * @param {NextRequest} request - The incoming HTTP request.
- * @param {RouteParams} params - Route parameters including the `formId`.
- * @returns {Promise<NextResponse>} A JSON response containing the form responses.
- *
- * #### GET Behavior:
- * - Authenticates the user and verifies form ownership.
- * - Fetches all responses for the specified form from the database.
- *
- * #### GET Possible Responses:
- * - `200 OK`: Successfully retrieved form responses.
- * - `401 Unauthorized`: User is not authenticated or authorized.
- * - `404 Not Found`: Form not found or user does not own the form.
- * - `500 Internal Server Error`: An unexpected error occurred while fetching responses.
- */
 
 export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
     const supabase = await createClient();
-    const { formId } = params;
+    const { formId } = await params;
 
     const submissionData = await request.json();
     const { responses, metadata = {} } = submissionData;
@@ -275,7 +217,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const supabase = await createClient();
-    const { formId } = params;
+    const { formId } = await params;
 
     // Get current user
     const {

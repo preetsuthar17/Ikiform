@@ -1,11 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { FormField } from "@/lib/types/forms";
 
 interface RouteParams {
-  params: {
-    formId: string;
-  };
+  formId: string;
 }
 
 /**
@@ -44,10 +43,14 @@ interface RouteParams {
  * - Returns `500 Internal Server Error` if there is an issue updating the form fields.
  */
 
-export async function GET(request: NextRequest, { params }: RouteParams) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ formId: string }> }
+) {
+  const { formId } = await params;
+
   try {
     const supabase = await createClient();
-    const { formId } = params;
 
     // Get current user
     const {
@@ -91,10 +94,14 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   }
 }
 
-export async function POST(request: NextRequest, { params }: RouteParams) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ formId: string }> }
+) {
+  const { formId } = await params;
+
   try {
     const supabase = await createClient();
-    const { formId } = params;
 
     // Get current user
     const {
@@ -161,10 +168,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
   }
 }
 
-export async function PUT(request: NextRequest, { params }: RouteParams) {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ formId: string }> }
+) {
+  const { formId } = await params;
+
   try {
     const supabase = await createClient();
-    const { formId } = params;
 
     // Get current user
     const {

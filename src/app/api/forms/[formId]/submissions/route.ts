@@ -27,11 +27,11 @@ import {
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { formId: string } }
+  { params }: { params: Promise<{ formId: string }> }
 ) {
   try {
     const body = await request.json();
-    const { formId } = params;
+    const { formId } = await params;
 
     // Get client IP and user agent
     const forwardedFor = request.headers.get("x-forwarded-for");
@@ -80,10 +80,10 @@ export async function POST(
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { formId: string } }
+  { params }: { params: Promise<{ formId: string }> }
 ) {
   try {
-    const { formId } = params;
+    const { formId } = await params;
     const submissions = await SubmissionService.getFormSubmissions(formId);
 
     return NextResponse.json({ submissions });

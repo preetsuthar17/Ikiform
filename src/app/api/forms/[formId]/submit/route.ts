@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { FormResponse } from "@/lib/types/forms";
+import { getClientIP, getUserAgent } from "@/lib/utils/ip";
 
 export async function POST(
   request: NextRequest,
@@ -153,11 +154,8 @@ export async function POST(
       .insert({
         form_id: formId,
         response_data: responses,
-        ip_address:
-          request.headers.get("x-forwarded-for") ||
-          request.headers.get("x-real-ip") ||
-          "unknown",
-        user_agent: request.headers.get("user-agent") || "unknown",
+        ip_address: getClientIP(request),
+        user_agent: getUserAgent(request),
         completion_time: metadata.completion_time || 0,
       })
       .select()

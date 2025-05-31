@@ -94,7 +94,7 @@ function FieldPaletteItem({ template, onClick }: FieldPaletteItemProps) {
       onClick={onClick}
       className={cn(
         "group flex items-center gap-3 p-3 rounded-lg bg-white cursor-pointer transition-all duration-200",
-        "hover:border-black/20 border border-transparent hover:shadow-sm",
+        "hover:border-black/20 border border-transparent",
         "active:scale-95 active:bg-gray-50"
       )}
     >

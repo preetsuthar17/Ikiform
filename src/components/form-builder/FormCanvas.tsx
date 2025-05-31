@@ -128,9 +128,14 @@ export function FormCanvas({
       </div>
 
       {/* Canvas Content */}
-      <div className="flex-1 overflow-auto bg-[#FAFAFA] p-8">
-        <div className={cn("mx-auto transition-all duration-300", getViewportClasses())}>
-          <Card className="shadow-lg border-0 bg-white">
+      <div className="flex-1 overflow-auto bg-white p-8">
+        <div
+          className={cn(
+            "mx-auto transition-all duration-300",
+            getViewportClasses()
+          )}
+        >
+          <Card className="border-0 bg-neutral-50">
             <CardHeader className="space-y-4 p-8">
               {!previewMode && (
                 <div className="flex items-center gap-2 text-sm text-[#717171]">
@@ -154,11 +159,10 @@ export function FormCanvas({
               {fields.length === 0 ? (
                 <div className="min-h-32 border-2 border-dashed rounded-lg flex items-center justify-center bg-[#FAFAFA] border-[#E5E5E5]">
                   <div className="text-center text-[#717171] pointer-events-none">
-                    <p className="font-medium">
-                      Start building your form
-                    </p>
+                    <p className="font-medium">Start building your form</p>
                     <p className="text-sm mt-1">
-                      Click on field types in the palette to add them to your form
+                      Click on field types in the palette to add them to your
+                      form
                     </p>
                   </div>
                 </div>

@@ -447,7 +447,7 @@ export function FormBuilder({
           {/* Form Canvas */}
           <ResizablePanel defaultSize={selectedField ? 50 : 80} minSize={40}>
             <FormCanvas
-              className="bg-white h-full"
+              className="bg-neutral-50 h-full"
               form={form}
               fields={fields}
               selectedField={selectedField}

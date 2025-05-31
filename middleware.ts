@@ -14,15 +14,23 @@ export async function middleware(request: NextRequest) {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value),
+            request.cookies.set(name, value)
           );
           supabaseResponse = NextResponse.next({ request });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options),
-          );
+          cookiesToSet.forEach(({ name, value, options }) => {
+            // Enhanced cookie options for production security
+            const cookieOptions = {
+              ...options,
+              secure: process.env.NODE_ENV === "production",
+              sameSite: "lax" as const,
+              httpOnly: true,
+              path: "/",
+            };
+            supabaseResponse.cookies.set(name, value, cookieOptions);
+          });
         },
       },
-    },
+    }
   );
 
   await supabase.auth.getUser();

@@ -299,7 +299,7 @@ export function FormFieldRenderer({
       {!previewMode && (
         <div
           className={cn(
-            "absolute -top-3 left-4 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-white rounded-lg border border-[#E5E5E5] shadow-sm z-10",
+            "absolute -top-3 left-4 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-white rounded-lg border border-[#E5E5E5] z-10",
             isSelected && "opacity-100"
           )}
         >

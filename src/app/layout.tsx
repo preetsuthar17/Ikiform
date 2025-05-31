@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { DM_Sans, Inter, JetBrains_Mono } from "next/font/google";
 
-import "../../app/globals.css";
+import "./globals.css";
 
 import { Toaster } from "react-hot-toast";
 
@@ -110,7 +110,7 @@ export const metadata: Metadata = {
   classification: "Business Software",
 };
 
-export default function DashboardLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -121,8 +121,7 @@ export default function DashboardLayout({
         className={`${inter.variable} ${dm_sans.variable} ${jetbrains_mono.variable} antialiased font-inter`}
       >
         <main className="min-h-screen">{children}</main>
-        <Toaster position="top-center"  />
-        <Footer />
+        <Toaster position="top-center" />
       </body>
       <GoogleAnalytics gaId="G-35M26ZHKNE" />
     </html>

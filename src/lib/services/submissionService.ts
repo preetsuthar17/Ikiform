@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase/client";
 import { UploadedFile } from "./fileUploadService";
+import { SupabaseClient } from "@supabase/supabase-js";
 
 export interface FormSubmissionData {
   formId: string;
@@ -158,9 +159,20 @@ export class SubmissionService {
   /**
    * Get form submissions for a specific form
    */
-  static async getFormSubmissions(formId: string) {
+  static async getFormSubmissions(
+    formId: string,
+    supabaseClient?: SupabaseClient
+  ) {
     try {
-      const { data, error } = await supabase
+      console.log(
+        "🔍 SubmissionService: Fetching submissions for formId:",
+        formId
+      );
+
+      // Use provided client or default to client-side client
+      const client = supabaseClient || supabase;
+
+      const { data, error } = await client
         .from("form_responses")
         .select(
           `
@@ -181,12 +193,22 @@ export class SubmissionService {
         .order("submitted_at", { ascending: false });
 
       if (error) {
+        console.error("❌ SubmissionService: Supabase error:", error);
         throw new Error(`Failed to fetch submissions: ${error.message}`);
       }
 
+      console.log("📊 SubmissionService: Raw data from Supabase:", data);
+      console.log(
+        "📋 SubmissionService: Number of submissions found:",
+        data?.length || 0
+      );
+
       return data;
     } catch (error) {
-      console.error("Error fetching form submissions:", error);
+      console.error(
+        "❌ SubmissionService: Error fetching form submissions:",
+        error
+      );
       throw error;
     }
   }

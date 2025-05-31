@@ -16,6 +16,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   ArrowLeft,
   Eye,
@@ -26,7 +34,19 @@ import {
   Share,
   BarChart3,
   Calendar,
+  Search,
+  Filter,
+  ChevronDown,
+  ExternalLink,
 } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 export default function FormAnalyticsPage() {
   const params = useParams();
@@ -36,6 +56,48 @@ export default function FormAnalyticsPage() {
   const { form, loading: formLoading } = useForm(formId);
   const { analytics, loading: analyticsLoading } = useFormAnalytics(formId);
   const { responses, loading: responsesLoading } = useFormResponses(formId);
+
+  // State for search and filtering
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<"date" | "email" | "completion_time">(
+    "date"
+  );
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+
+  // Filter and sort responses
+  const filteredAndSortedResponses = responses
+    ? responses
+        .filter((response) => {
+          const searchTerm = searchQuery.toLowerCase();
+          const emailMatch = response.respondent_email
+            ?.toLowerCase()
+            .includes(searchTerm);
+          const dataMatch = Object.values(response.response_data).some(
+            (value) => String(value).toLowerCase().includes(searchTerm)
+          );
+          const idMatch = response.id.toLowerCase().includes(searchTerm);
+          return !searchQuery || emailMatch || dataMatch || idMatch;
+        })
+        .sort((a, b) => {
+          let comparison = 0;
+          switch (sortBy) {
+            case "date":
+              comparison =
+                new Date(a.submitted_at).getTime() -
+                new Date(b.submitted_at).getTime();
+              break;
+            case "email":
+              comparison = (a.respondent_email || "").localeCompare(
+                b.respondent_email || ""
+              );
+              break;
+            case "completion_time":
+              comparison = (a.completion_time || 0) - (b.completion_time || 0);
+              break;
+          }
+          return sortOrder === "asc" ? comparison : -comparison;
+        })
+    : [];
 
   const handleExportData = async (format: "csv" | "json") => {
     try {
@@ -109,55 +171,65 @@ export default function FormAnalyticsPage() {
   return (
     <div className="container mx-auto py-8 px-4">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push("/dashboard/forms")}
-            className="gap-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Forms
-          </Button>
+      <div className="flex flex-col gap-4 mb-8">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => router.push("/dashboard/forms")}
+          className="gap-2 self-start"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Forms
+        </Button>
+
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-[#2D2D2D]">{form.title}</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-[#2D2D2D] break-words">
+              {form.title}
+            </h1>
             <p className="text-[#717171] mt-1">Form Analytics & Insights</p>
           </div>
-        </div>
 
-        <div className="flex items-center gap-3">
-          <Badge
-            variant={form.is_published ? "default" : "secondary"}
-            className={form.is_published ? "bg-green-100 text-green-800" : ""}
-          >
-            {form.is_published ? "Published" : "Draft"}
-          </Badge>
-
-          {form.is_published && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleShareForm}
-              className="gap-2"
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <Badge
+              variant={form.is_published ? "default" : "secondary"}
+              className={form.is_published ? "bg-green-100 text-green-800" : ""}
             >
-              <Share className="w-4 h-4" />
-              Share
-            </Button>
-          )}
+              {form.is_published ? "Published" : "Draft"}
+            </Badge>
 
-          <Button variant="outline" size="sm" asChild className="gap-2">
-            <Link href={`/dashboard/forms/${formId}`}>
-              <BarChart3 className="w-4 h-4" />
-              Edit Form
-            </Link>
-          </Button>
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              {form.is_published && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleShareForm}
+                  className="gap-2 w-full sm:w-auto"
+                >
+                  <Share className="w-4 h-4" />
+                  Share
+                </Button>
+              )}
+
+              <Button
+                variant="outline"
+                size="sm"
+                asChild
+                className="gap-2 w-full sm:w-auto"
+              >
+                <Link href={`/dashboard/forms/${formId}`}>
+                  <BarChart3 className="w-4 h-4" />
+                  Edit Form
+                </Link>
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Overview Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Card>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+        <Card className="bg-neutral-50 border-0">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-[#717171] flex items-center gap-2">
               <Eye className="w-4 h-4" />
@@ -175,7 +247,7 @@ export default function FormAnalyticsPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-neutral-50 border-0">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-[#717171] flex items-center gap-2">
               <Users className="w-4 h-4" />
@@ -187,13 +259,13 @@ export default function FormAnalyticsPage() {
               <Skeleton className="h-8 w-16" />
             ) : (
               <div className="text-2xl font-bold text-[#2D2D2D]">
-                {analytics?.submissions || 0}
+                {filteredAndSortedResponses?.length || 0}
               </div>
             )}
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-neutral-50 border-0">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-[#717171] flex items-center gap-2">
               <TrendingUp className="w-4 h-4" />
@@ -213,7 +285,7 @@ export default function FormAnalyticsPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-neutral-50 border-0">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-[#717171] flex items-center gap-2">
               <Clock className="w-4 h-4" />
@@ -234,9 +306,277 @@ export default function FormAnalyticsPage() {
         </Card>
       </div>
 
+      {/* Submissions Table */}
+      <Card className="mb-8 bg-neutral-50 border-0">
+        <CardHeader>
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center gap-2">
+              <CardTitle>All Submissions</CardTitle>
+              <Badge variant="outline">
+                {filteredAndSortedResponses?.length || 0} of{" "}
+                {responses?.length || 0}
+              </Badge>
+            </div>
+
+            {responses && responses.length > 0 && (
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="relative flex-1 min-w-0">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-[#717171]" />
+                  <Input
+                    placeholder="Search submissions..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-8 w-full shadow-none"
+                  />
+                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="default"
+                      className="gap-2 w-full sm:w-auto"
+                    >
+                      <Filter className="w-4 h-4" />
+                      Sort
+                      <ChevronDown className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setSortBy("date");
+                        setSortOrder("desc");
+                      }}
+                    >
+                      Latest First
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setSortBy("date");
+                        setSortOrder("asc");
+                      }}
+                    >
+                      Oldest First
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setSortBy("email");
+                        setSortOrder("asc");
+                      }}
+                    >
+                      Email A-Z
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setSortBy("completion_time");
+                        setSortOrder("asc");
+                      }}
+                    >
+                      Fastest First
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setSortBy("completion_time");
+                        setSortOrder("desc");
+                      }}
+                    >
+                      Slowest First
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent className="px-0 sm:px-6">
+          {loading ? (
+            <div className="space-y-3 px-6 sm:px-0">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-3 p-3">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-4 w-48" />
+                  <Skeleton className="h-4 w-24" />
+                </div>
+              ))}
+            </div>
+          ) : filteredAndSortedResponses &&
+            filteredAndSortedResponses.length > 0 ? (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="min-w-[120px]">
+                      Submission ID
+                    </TableHead>
+                    <TableHead className="min-w-[100px]">Submitted</TableHead>
+                    <TableHead className="min-w-[120px]">Email</TableHead>
+                    <TableHead className="min-w-[100px]">
+                      Completion Time
+                    </TableHead>
+                    <TableHead className="min-w-[150px]">
+                      Response Data
+                    </TableHead>
+                    <TableHead className="w-[80px]">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredAndSortedResponses.map((response) => (
+                    <TableRow key={response.id}>
+                      <TableCell className="font-mono text-xs">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <Link
+                            href={`/dashboard/forms/${formId}/submissions/${response.id}`}
+                            className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer truncate"
+                          >
+                            {response.id.slice(0, 8)}...
+                          </Link>
+                          <ExternalLink className="w-3 h-3" />
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col">
+                          <span className="text-sm whitespace-nowrap">
+                            {format(
+                              new Date(response.submitted_at),
+                              "MMM dd, yyyy"
+                            )}
+                          </span>
+                          <span className="text-xs text-[#717171] whitespace-nowrap">
+                            {format(new Date(response.submitted_at), "HH:mm")}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {response.respondent_email ? (
+                          <span className="text-sm break-all">
+                            {response.respondent_email}
+                          </span>
+                        ) : (
+                          <span className="text-[#717171] italic">
+                            Anonymous
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {response.completion_time ? (
+                          <span className="text-sm whitespace-nowrap">
+                            {Math.round(response.completion_time)}s
+                          </span>
+                        ) : (
+                          <span className="text-[#717171]">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="max-w-[200px] lg:max-w-xs">
+                          {Object.keys(response.response_data).length > 0 ? (
+                            <details className="cursor-pointer">
+                              <summary className="text-sm text-blue-600 hover:text-blue-800">
+                                {Object.keys(response.response_data).length}{" "}
+                                field(s)
+                              </summary>
+                              <div className="mt-2 space-y-1 text-xs max-h-40 overflow-y-auto">
+                                {Object.entries(response.response_data).map(
+                                  ([key, value]) => (
+                                    <div
+                                      key={key}
+                                      className="border-l-2 border-gray-200 pl-2"
+                                    >
+                                      <span className="font-medium text-[#2D2D2D] break-words">
+                                        {key}:
+                                      </span>
+                                      <span className="ml-1 text-[#717171] break-words">
+                                        {typeof value === "object"
+                                          ? JSON.stringify(value)
+                                          : String(value).length > 50
+                                            ? String(value).slice(0, 50) + "..."
+                                            : String(value)}
+                                      </span>
+                                    </div>
+                                  )
+                                )}
+                              </div>
+                            </details>
+                          ) : (
+                            <span className="text-[#717171] italic">
+                              No data
+                            </span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <ChevronDown className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => {
+                                const data = JSON.stringify(response, null, 2);
+                                navigator.clipboard.writeText(data);
+                                toast.success("Response data copied!");
+                              }}
+                            >
+                              Copy JSON
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => {
+                                const csv = Object.entries(
+                                  response.response_data
+                                )
+                                  .map(([key, value]) => `"${key}","${value}"`)
+                                  .join("\n");
+                                navigator.clipboard.writeText(csv);
+                                toast.success("Response CSV copied!");
+                              }}
+                            >
+                              Copy as CSV
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          ) : responses && responses.length > 0 && searchQuery ? (
+            <div className="text-center py-12 px-6 sm:px-0">
+              <Search className="w-12 h-12 text-[#717171] mx-auto mb-3" />
+              <h3 className="text-lg font-medium text-[#2D2D2D] mb-2">
+                No matching submissions
+              </h3>
+              <p className="text-[#717171] mb-4">
+                Try adjusting your search criteria
+              </p>
+              <Button variant="outline" onClick={() => setSearchQuery("")}>
+                Clear Search
+              </Button>
+            </div>
+          ) : (
+            <div className="text-center py-12 px-6 sm:px-0">
+              <Users className="w-12 h-12 text-[#717171] mx-auto mb-3" />
+              <h3 className="text-lg font-medium text-[#2D2D2D] mb-2">
+                No submissions yet
+              </h3>
+              <p className="text-[#717171] mb-6">
+                Share your form to start collecting responses
+              </p>
+              {form.is_published && form.share_url && (
+                <Button onClick={handleShareForm} className="gap-2">
+                  <Share className="w-4 h-4" />
+                  Copy Share Link
+                </Button>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <Card>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+        <Card className="bg-neutral-50 border-0">
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <span>Recent Activity</span>
@@ -289,7 +629,7 @@ export default function FormAnalyticsPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-neutral-50 border-0">
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <span>Export Data</span>
@@ -303,11 +643,11 @@ export default function FormAnalyticsPage() {
                 formats.
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Button
                   variant="outline"
                   onClick={() => handleExportData("csv")}
-                  className="gap-2"
+                  className="gap-2 w-full"
                   disabled={!responses || responses.length === 0}
                 >
                   <Download className="w-4 h-4" />
@@ -317,7 +657,7 @@ export default function FormAnalyticsPage() {
                 <Button
                   variant="outline"
                   onClick={() => handleExportData("json")}
-                  className="gap-2"
+                  className="gap-2 w-full"
                   disabled={!responses || responses.length === 0}
                 >
                   <Download className="w-4 h-4" />
@@ -336,24 +676,24 @@ export default function FormAnalyticsPage() {
       </div>
 
       {/* Form Details */}
-      <Card className="mt-8">
+      <Card className="mt-8 bg-neutral-50 border-0">
         <CardHeader>
           <CardTitle>Form Information</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
               <h4 className="font-medium text-[#2D2D2D] mb-2">Details</h4>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-[#717171]">Created:</span>
-                  <span>
+                  <span className="text-right">
                     {format(new Date(form.created_at), "MMM dd, yyyy")}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-[#717171]">Last Updated:</span>
-                  <span>
+                  <span className="text-right">
                     {format(new Date(form.updated_at), "MMM dd, yyyy")}
                   </span>
                 </div>
@@ -372,16 +712,17 @@ export default function FormAnalyticsPage() {
                     <span className="text-[#717171] block mb-1">
                       Public URL:
                     </span>
-                    <div className="flex items-center gap-2">
-                      <code className="flex-1 px-2 py-1 bg-gray-100 rounded text-xs">
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <code className="flex-1 px-2 py-1 bg-gray-100 rounded text-sm break-all min-w-0 font-jetbrains-mono text-center items-center flex">
                         {`${window.location.origin}/f/${form.share_url}`}
                       </code>
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={handleShareForm}
+                        className="w-full sm:w-auto flex-shrink-0"
                       >
-                        Copy
+                        <Share className="w-4 h-4" />
                       </Button>
                     </div>
                   </div>

@@ -95,6 +95,10 @@ export default function DashboardContent({ user }: DashboardContentProps) {
     router.push(`/dashboard/forms/${formId}`);
   };
 
+  const handleViewAnalytics = (formId: string) => {
+    router.push(`/dashboard/forms/${formId}/analytics`);
+  };
+
   const handleViewForm = (shareUrl: string) => {
     window.open(`/f/${shareUrl}`, "_blank");
   };
@@ -218,7 +222,7 @@ export default function DashboardContent({ user }: DashboardContentProps) {
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
+          <div className="flex justify-between items-center flex-wrap gap-6 py-6">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
               <p className="text-gray-600">
@@ -322,133 +326,145 @@ export default function DashboardContent({ user }: DashboardContentProps) {
               </Button>
             </div>
           </CardHeader>
-          <CardContent>
+            <CardContent>
             {formsLoading ? (
               <div className="space-y-4">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center justify-between p-4 bg-white shadow-none rounded-xl"
-                  >
-                    <div className="space-y-2">
-                      <Skeleton className="h-5 w-48" />
-                      <Skeleton className="h-4 w-32" />
-                    </div>
-                    <div className="flex gap-2">
-                      <Skeleton className="h-8 w-8" />
-                      <Skeleton className="h-8 w-8" />
-                      <Skeleton className="h-8 w-8" />
-                    </div>
-                  </div>
-                ))}
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div
+                key={i}
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-white shadow-none rounded-xl space-y-3 sm:space-y-0"
+                >
+                <div className="space-y-2">
+                  <Skeleton className="h-5 w-48" />
+                  <Skeleton className="h-4 w-32" />
+                </div>
+                <div className="flex gap-2">
+                  <Skeleton className="h-8 w-8" />
+                  <Skeleton className="h-8 w-8" />
+                  <Skeleton className="h-8 w-8" />
+                </div>
+                </div>
+              ))}
               </div>
             ) : formsError ? (
               <div className="text-center py-8 text-red-600">
-                Error loading forms: {formsError}
+              Error loading forms: {formsError}
               </div>
             ) : forms.length === 0 ? (
               <div className="text-center py-12">
-                <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  No forms yet
-                </h3>
-                <p className="text-gray-600 mb-6">
-                  Create your first form to start collecting responses
-                </p>
-                <Button onClick={handleCreateForm} className="gap-2">
-                  <Plus className="w-4 h-4" />
-                  Create Your First Form
-                </Button>
+              <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                No forms yet
+              </h3>
+              <p className="text-gray-600 mb-6">
+                Create your first form to start collecting responses
+              </p>
+              <Button onClick={handleCreateForm} className="gap-2">
+                <Plus className="w-4 h-4" />
+                Create Your First Form
+              </Button>
               </div>
             ) : (
               <div className="space-y-4">
-                {forms.map((form) => (
-                  <div
-                    key={form.id}
-                    className="flex items-center justify-between p-4 bg-white shadow-none rounded-xl"
-                  >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-medium text-gray-900">
-                          {form.title}
-                        </h3>
-                        <div className="flex gap-2">
-                          {form.is_published ? (
-                            <Badge
-                              variant="default"
-                              className="bg-green-100 text-green-800"
-                            >
-                              Published
-                            </Badge>
-                          ) : (
-                            <Badge variant="secondary">Draft</Badge>
-                          )}
-                          {form.password_protected && (
-                            <Badge variant="outline">Protected</Badge>
-                          )}
-                        </div>
-                      </div>{" "}
-                      <div className="flex items-center gap-4 text-sm text-gray-600">
-                        <span className="flex items-center gap-1">
-                          <Eye className="w-4 h-4" />
-                          {(form as any)?.form_analytics?.[0]?.views || 0} views
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Users className="w-4 h-4" />
-                          {(form as any)?.form_analytics?.[0]?.submissions ||
-                            0}{" "}
-                          submissions
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-4 h-4" />
-                          {new Date(form.created_at).toLocaleDateString()}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEditForm(form.id)}
-                        title="Edit form"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      {form.is_published && form.share_url && (
-                        <>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleViewForm(form.share_url!)}
-                            title="View form"
-                          >
-                            <ExternalLink className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleCopyLink(form.share_url!)}
-                            title="Copy link"
-                          >
-                            <Copy className="w-4 h-4" />
-                          </Button>
-                        </>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDeleteForm(form.id, form.title)}
-                        title="Delete form"
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
+              {forms.map((form) => (
+                <div
+                key={form.id}
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-white shadow-none rounded-xl space-y-3 sm:space-y-0"
+                >
+                <div className="flex-1">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
+                  <h3 className="font-medium text-gray-900">
+                    {form.title}
+                  </h3>
+                  <div className="flex gap-2">
+                    {form.is_published ? (
+                    <Badge
+                      variant="default"
+                      className="bg-green-100 text-green-800 w-fit"
+                    >
+                      Published
+                    </Badge>
+                    ) : (
+                    <Badge variant="secondary" className="w-fit">Draft</Badge>
+                    )}
+                    {form.password_protected && (
+                    <Badge variant="outline" className="w-fit">Protected</Badge>
+                    )}
                   </div>
-                ))}
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-gray-600">
+                  <span className="flex items-center gap-1">
+                    <Eye className="w-4 h-4" />
+                    {(form as any)?.form_analytics?.[0]?.views || 0} views
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Users className="w-4 h-4" />
+                    {(form as any)?.form_analytics?.[0]?.submissions ||
+                    0}{" "}
+                    submissions
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Calendar className="w-4 h-4" />
+                    {new Date(form.created_at).toLocaleDateString()}
+                  </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 overflow-x-auto">
+                  <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleViewAnalytics(form.id)}
+                  title="View analytics"
+                  className="flex-shrink-0"
+                  >
+                  <BarChart3 className="w-4 h-4" />
+                  </Button>
+                  <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleEditForm(form.id)}
+                  title="Edit form"
+                  className="flex-shrink-0"
+                  >
+                  <Edit className="w-4 h-4" />
+                  </Button>
+                  {form.is_published && form.share_url && (
+                  <>
+                    <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleViewForm(form.share_url!)}
+                    title="View form"
+                    className="flex-shrink-0"
+                    >
+                    <ExternalLink className="w-4 h-4" />
+                    </Button>
+                    <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleCopyLink(form.share_url!)}
+                    title="Copy link"
+                    className="flex-shrink-0"
+                    >
+                    <Copy className="w-4 h-4" />
+                    </Button>
+                  </>
+                  )}
+                  <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleDeleteForm(form.id, form.title)}
+                  title="Delete form"
+                  className="text-red-600 hover:text-red-700 flex-shrink-0"
+                  >
+                  <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+                </div>
+              ))}
               </div>
             )}
-          </CardContent>
+            </CardContent>
         </Card>
       </div>
 

@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 
-import { DM_Sans, Inter } from "next/font/google";
+import { DM_Sans, Inter, JetBrains_Mono } from "next/font/google";
 
 import "../../app/globals.css";
 
@@ -20,6 +20,13 @@ const inter = Inter({
 const dm_sans = DM_Sans({
   variable: "--font-dm-sans",
   subsets: ["latin"],
+});
+
+const jetbrains_mono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["400", "500", "600", "700"],
 });
 
 export const viewport: Viewport = {
@@ -123,7 +130,7 @@ export default function HomeLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} ${dm_sans.variable} antialiased font-inter`}
+        className={`${inter.variable} ${dm_sans.variable} ${jetbrains_mono.variable} antialiased font-inter`}
       >
         <Navbar />
         <main className="min-h-screen">{children}</main>

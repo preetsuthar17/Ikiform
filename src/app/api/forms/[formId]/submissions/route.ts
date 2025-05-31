@@ -3,27 +3,11 @@ import {
   SubmissionService,
   FormSubmissionData,
 } from "@/lib/services/submissionService";
+import { createClient } from "@/lib/supabase/server";
+import { getClientIP, getUserAgent } from "@/lib/utils/ip";
 
 /**
  * Handles the POST request for submitting a form.
- *
- * @param request - The incoming HTTP request object.
- * @param context - An object containing route parameters.
- * @param context.params - The route parameters.
- * @param context.params.formId - The ID of the form being submitted.
- *
- * @returns A JSON response indicating the success or failure of the form submission.
- *
- * The function performs the following steps:
- * 1. Parses the request body to extract submission data.
- * 2. Retrieves the client's IP address and user agent from the request headers.
- * 3. Constructs a `FormSubmissionData` object with the extracted data.
- * 4. Calls the `SubmissionService.submitForm` method to process the submission.
- * 5. Returns a 201 status code with the result if the submission is successful.
- * 6. Returns a 400 status code with an error message if the submission fails.
- * 7. Returns a 500 status code with a generic error message in case of an exception.
- *
- * @throws Will log an error and return a 500 status code if an unexpected error occurs.
  */
 export async function POST(
   request: NextRequest,
@@ -33,11 +17,9 @@ export async function POST(
     const body = await request.json();
     const { formId } = await params;
 
-    // Get client IP and user agent
-    const forwardedFor = request.headers.get("x-forwarded-for");
-    const realIp = request.headers.get("x-real-ip");
-    const ipAddress = forwardedFor?.split(",")[0] || realIp || "unknown";
-    const userAgent = request.headers.get("user-agent") || "unknown";
+    // Get client IP and user agent using improved detection
+    const ipAddress = getClientIP(request);
+    const userAgent = getUserAgent(request);
 
     const submissionData: FormSubmissionData = {
       formId,
@@ -67,28 +49,71 @@ export async function POST(
 
 /**
  * Handles the GET request to fetch submissions for a specific form.
- *
- * @param request - The incoming Next.js request object.
- * @param context - An object containing route parameters.
- * @param context.params - The route parameters.
- * @param context.params.formId - The ID of the form whose submissions are to be fetched.
- *
- * @returns A JSON response containing the submissions for the specified form.
- *          If an error occurs, returns a JSON response with an error message and a 500 status code.
- *
- * @throws Logs an error to the console if fetching submissions fails.
  */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ formId: string }> }
 ) {
   try {
+    const supabase = await createClient();
     const { formId } = await params;
-    const submissions = await SubmissionService.getFormSubmissions(formId);
 
-    return NextResponse.json({ submissions });
+    console.log("🔍 Fetching submissions for formId:", formId);
+
+    // Get current user
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      console.log("❌ Authentication failed:", authError);
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    console.log("✅ User authenticated:", user.id);
+
+    // Verify form ownership
+    const { data: form, error: formError } = await supabase
+      .from("forms")
+      .select("id, title")
+      .eq("id", formId)
+      .eq("user_id", user.id)
+      .single();
+
+    if (formError || !form) {
+      console.log("❌ Form not found or access denied:", formError);
+      return NextResponse.json({ error: "Form not found" }, { status: 404 });
+    }
+
+    console.log("✅ Form found:", form.title);
+
+    // Try direct query to bypass any potential issues
+    console.log(
+      "🔍 Direct query: Fetching submissions from form_responses table"
+    );
+
+    const { data: directSubmissions, error: submissionsError } = await supabase
+      .from("form_responses")
+      .select("*")
+      .eq("form_id", formId)
+      .order("submitted_at", { ascending: false });
+
+    if (submissionsError) {
+      console.error("❌ Direct query error:", submissionsError);
+      return NextResponse.json(
+        { error: "Failed to fetch submissions" },
+        { status: 500 }
+      );
+    }
+
+    console.log("📊 Direct query result:", directSubmissions);
+    console.log("📋 Direct query count:", directSubmissions?.length || 0);
+
+    // Return as 'responses' to match the expected format in formService
+    return NextResponse.json({ responses: directSubmissions });
   } catch (error) {
-    console.error("Error fetching submissions:", error);
+    console.error("❌ Error fetching submissions:", error);
     return NextResponse.json(
       { error: "Failed to fetch submissions" },
       { status: 500 }

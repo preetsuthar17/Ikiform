@@ -41,6 +41,19 @@ export async function GET(request: NextRequest) {
       data: { user },
       error: authError,
     } = await supabase.auth.getUser();
+
+    // Enhanced debugging for production issues
+    if (process.env.NODE_ENV === "production") {
+      console.log("Auth debug info:", {
+        hasUser: !!user,
+        authError: authError?.message,
+        userAgent: request.headers.get("user-agent"),
+        origin: request.headers.get("origin"),
+        referer: request.headers.get("referer"),
+        cookieCount: request.cookies.getAll().length,
+      });
+    }
+
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     } // Get user's forms

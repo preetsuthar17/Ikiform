@@ -20,26 +20,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { useForm } from "@/lib/hooks/useForms";
-import { createClient } from "@/lib/supabase/client";
-
-interface FormResponse {
-  id: string;
-  form_id: string;
-  respondent_email: string | null;
-  response_data: Record<string, any>;
-  ip_address: string;
-  user_agent: string;
-  completion_time: number | null;
-  submitted_at: string;
-}
-
-interface FormField {
-  id: string;
-  label: string;
-  type: string;
-  required: boolean;
-  options?: string[];
-}
+import { formService } from "@/lib/services/formService";
+import { FormResponse, FormField } from "@/lib/types/forms";
 
 export default function SubmissionDetailsPage() {
   const params = useParams();
@@ -54,68 +36,23 @@ export default function SubmissionDetailsPage() {
   useEffect(() => {
     async function fetchSubmission() {
       try {
-        const supabase = createClient();
+        // Use the same API endpoint that the analytics page uses
+        const { responses } = await formService.getFormResponses(formId);
 
-        console.log("🔍 Fetching submission with:", { formId, submissionId });
-        console.log(
-          "🔍 Type check - formId:",
-          typeof formId,
-          "submissionId:",
-          typeof submissionId
-        );
-
-        // First, let's try to get all submissions for this form to see what's available
-        console.log("🔍 First, checking all submissions for this form...");
-        const { data: allSubmissions, error: allError } = await supabase
-          .from("form_responses")
-          .select("id, form_id, submitted_at")
-          .eq("form_id", formId);
-
-        console.log("📊 All submissions for form:", allSubmissions);
-        console.log("📊 All submissions error:", allError);
-
-        // Now try to fetch the specific submission
-        console.log("🔍 Now fetching specific submission...");
-        const { data, error } = await supabase
-          .from("form_responses")
-          .select("*")
-          .eq("id", submissionId)
-          .eq("form_id", formId)
-          .maybeSingle();
-
-        console.log("📊 Specific submission query result:", { data, error });
-
-        // Also try without the form_id constraint to see if the submission exists at all
-        console.log(
-          "🔍 Trying to fetch submission without form_id constraint..."
-        );
-        const { data: submissionOnly, error: submissionOnlyError } =
-          await supabase
-            .from("form_responses")
-            .select("*")
-            .eq("id", submissionId)
-            .maybeSingle();
-
-        console.log("📊 Submission-only query result:", {
-          data: submissionOnly,
-          error: submissionOnlyError,
-        });
-
-        console.log("📊 Final data before setting state:", data);
-        console.log("📊 Final error before setting state:", error);
-
-        if (error) {
-          console.error("Error detected:", error);
-          throw error;
+        if (!responses || responses.length === 0) {
+          throw new Error("No submissions found for this form");
         }
 
-        if (!data) {
-          console.warn("No data found for submission.");
+        // Find the specific submission by ID
+        const foundSubmission = responses.find(
+          (response) => response.id === submissionId
+        );
+
+        if (!foundSubmission) {
           throw new Error("Submission not found");
         }
 
-        setSubmission(data);
-        console.log("✅ Submission state updated successfully.");
+        setSubmission(foundSubmission);
       } catch (err) {
         console.error("Error fetching submission:", err);
         setError(
@@ -560,14 +497,15 @@ export default function SubmissionDetailsPage() {
             <CardContent>
               {" "}
               <div className="space-y-3">
+                {" "}
                 <div>
                   <div className="flex items-center gap-1 text-[#717171] text-sm mb-1">
                     <MapPin className="w-3 h-3" />
                     IP Address:
                   </div>
                   <div className="font-mono text-xs bg-gray-50 p-2 rounded">
-                    {submission.ip_address}
-                    {submission.ip_address.includes("localhost") && (
+                    {submission.ip_address || "Not available"}
+                    {submission.ip_address?.includes("localhost") && (
                       <div className="text-[#717171] mt-1 font-normal">
                         Development environment
                       </div>
@@ -579,15 +517,14 @@ export default function SubmissionDetailsPage() {
                     )}
                   </div>
                 </div>
-
                 <div>
                   <div className="flex items-center gap-1 text-[#717171] text-sm mb-1">
                     <Monitor className="w-3 h-3" />
                     User Agent:
                   </div>
                   <div className="font-mono text-xs bg-gray-50 p-2 rounded break-all">
-                    {submission.user_agent}
-                    {submission.user_agent.includes("(dev)") && (
+                    {submission.user_agent || "Not available"}
+                    {submission.user_agent?.includes("(dev)") && (
                       <div className="text-[#717171] mt-1 font-normal">
                         Development mode
                       </div>

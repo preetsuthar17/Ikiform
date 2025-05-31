@@ -3,7 +3,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, use } from "react";
 import { usePublicForm } from "@/lib/hooks/useForms";
 import { PublicFormFieldRenderer } from "@/components/forms/PublicFormFieldRenderer";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ import {
   FileUploadService,
   UploadedFile,
 } from "@/lib/services/fileUploadService";
+import { useRouter } from "next/navigation";
 
 export default function PublicFormPage() {
   const params = useParams();
@@ -33,6 +34,14 @@ export default function PublicFormPage() {
     [fieldId: string]: string;
   }>({});
   const [startTime] = useState(Date.now());
+  const router = useRouter();
+
+  useEffect(() => {
+    router.refresh();
+    if (!shareUrl) {
+      router.push("/");
+    }
+  }, [shareUrl, router]);
 
   // Track form view when component mounts
   useEffect(() => {

@@ -48,10 +48,13 @@ interface RouteParams {
  * - Returns a `404 Not Found` response if the form does not exist or is not owned by the user.
  * - Returns a `500 Internal Server Error` response for any unexpected errors.
  */
-export async function GET(request: NextRequest, { params }: RouteParams) {
+export async function GET(
+  request: NextRequest,
+  context: { params: { formId: string } }
+) {
   try {
     const supabase = await createClient();
-    const { formId } = await params;
+    const { formId } = context.params;
 
     // Get current user
     const {
@@ -82,6 +85,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       .single();
 
     if (analyticsError && analyticsError.code !== "PGRST116") {
+      // Ensure "PGRST116" is valid or replace with a known constant
       return NextResponse.json(
         { error: analyticsError.message },
         { status: 500 }
@@ -187,7 +191,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Form not found" }, { status: 404 });
     }
 
-    const { event_type, metadata = {} } = await request.json();
+    const { event_type } = await request.json();
 
     // Handle different analytics events
     switch (event_type) {

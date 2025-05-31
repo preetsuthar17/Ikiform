@@ -2,12 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { FormField } from "@/lib/types/forms";
 
-interface RouteParams {
-  params: {
-    formId: string;
-  };
-}
-
 /**
  * Handles the GET request for fetching a specific form along with its fields and analytics.
  *
@@ -26,7 +20,10 @@ interface RouteParams {
  * 4. Maps the `form_fields` to a `fields` property for frontend compatibility.
  * 5. Returns the form data in a JSON response.
  */
-export async function GET(request: NextRequest, { params }: RouteParams) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ formId: string }> }
+) {
   try {
     const supabase = await createClient();
     const { formId } = await params;
@@ -126,7 +123,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
  * - The `fields` array is optional but, if provided, replaces all existing fields for the form.
  * - Errors during field deletion or insertion are logged but do not interrupt the main update process.
  */
-export async function PUT(request: NextRequest, { params }: RouteParams) {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ formId: string }> }
+) {
   try {
     const supabase = await createClient();
     const { formId } = await params;
@@ -268,7 +268,10 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
  * - The `formId` parameter is extracted from the route parameters.
  * - Errors during the deletion process are logged and returned as a response.
  */
-export async function DELETE(request: NextRequest, { params }: RouteParams) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ formId: string }> }
+) {
   try {
     const supabase = await createClient();
     const { formId } = await params;

@@ -148,17 +148,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(`${origin}/auth/login?error=session_failed`);
     }
 
-    // Create/update user profile automatically
-    try {
-      const { error: profileError } = await upsertUserProfile(data.user);
-      if (profileError) {
-        console.error("Failed to create user profile:", profileError);
-        // Don't fail the login, just log the error
-      }
-    } catch (profileError) {
-      console.error("Error during profile creation:", profileError);
-      // Don't fail the login, just log the error
-    }
+    // Skip automatic profile creation for now to avoid database errors
+    // Profile will be created on first dashboard access
+    console.log("User authenticated successfully:", data.user.email);
 
     // Security: Validate redirect URL to prevent open redirects
     let finalRedirect = "/dashboard"; // Default secure redirect

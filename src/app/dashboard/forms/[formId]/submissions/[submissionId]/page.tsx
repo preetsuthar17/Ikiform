@@ -51,11 +51,12 @@ export default function SubmissionDetailsPage() {
   const [submission, setSubmission] = useState<FormResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
   useEffect(() => {
     async function fetchSubmission() {
       try {
         const supabase = createClient();
+
+        console.log("🔍 Fetching submission with:", { formId, submissionId });
 
         // Fetch the specific submission
         const { data, error } = await supabase
@@ -63,10 +64,16 @@ export default function SubmissionDetailsPage() {
           .select("*")
           .eq("id", submissionId)
           .eq("form_id", formId)
-          .single();
+          .maybeSingle();
+
+        console.log("📊 Submission query result:", { data, error });
 
         if (error) {
           throw error;
+        }
+
+        if (!data) {
+          throw new Error("Submission not found");
         }
 
         setSubmission(data);

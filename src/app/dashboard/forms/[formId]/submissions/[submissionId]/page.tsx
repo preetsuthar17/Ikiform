@@ -101,15 +101,21 @@ export default function SubmissionDetailsPage() {
           error: submissionOnlyError,
         });
 
+        console.log("📊 Final data before setting state:", data);
+        console.log("📊 Final error before setting state:", error);
+
         if (error) {
+          console.error("Error detected:", error);
           throw error;
         }
 
         if (!data) {
+          console.warn("No data found for submission.");
           throw new Error("Submission not found");
         }
 
         setSubmission(data);
+        console.log("✅ Submission state updated successfully.");
       } catch (err) {
         console.error("Error fetching submission:", err);
         setError(

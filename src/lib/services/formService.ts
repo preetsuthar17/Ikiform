@@ -259,6 +259,8 @@ export class FormService {
   async getFormResponses(
     formId: string
   ): Promise<{ responses: FormResponse[] }> {
+    console.log("🔍 FormService: Fetching responses for formId:", formId);
+    
     const response = await fetch(
       `${this.baseUrl}/api/forms/${formId}/submissions`,
       {
@@ -270,7 +272,11 @@ export class FormService {
       throw new Error("Failed to fetch form responses");
     }
 
-    return response.json();
+    const result = await response.json();
+    console.log("📊 FormService: API response:", result);
+    console.log("📋 FormService: Response IDs:", result.responses?.map((r: any) => r.id));
+
+    return result;
   }
 
   // Analytics

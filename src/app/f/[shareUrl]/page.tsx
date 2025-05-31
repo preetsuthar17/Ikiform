@@ -43,7 +43,7 @@ export default function PublicFormPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ action: "track_view" }),
+        body: JSON.stringify({ event_type: "view" }),
       }).catch((error) => {
         console.error("Failed to track form view:", error);
       });

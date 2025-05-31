@@ -301,6 +301,7 @@ export class FormService {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({
           event_type: eventType,
           metadata,
@@ -309,7 +310,17 @@ export class FormService {
     );
 
     if (!response.ok) {
-      throw new Error("Failed to track analytics event");
+      const errorText = await response.text();
+      console.error("Analytics tracking failed:", {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorText,
+        formId,
+        eventType,
+      });
+      throw new Error(
+        `Failed to track analytics event: ${response.status} ${response.statusText}`
+      );
     }
 
     return response.json();

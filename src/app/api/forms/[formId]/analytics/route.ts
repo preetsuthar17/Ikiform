@@ -172,23 +172,69 @@ export async function POST(
       data: { user },
       error: authError,
     } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    // Enhanced debugging for production issues
+    if (process.env.NODE_ENV === "production") {
+      console.log("Analytics POST debug info:", {
+        hasUser: !!user,
+        authError: authError?.message,
+        formId,
+        userAgent: request.headers.get("user-agent"),
+        origin: request.headers.get("origin"),
+        referer: request.headers.get("referer"),
+      });
     }
 
-    // Verify form ownership
-    const { data: form, error: formError } = await supabase
-      .from("forms")
-      .select("id")
-      .eq("id", formId)
-      .eq("user_id", user.id)
-      .single();
-
-    if (formError || !form) {
-      return NextResponse.json({ error: "Form not found" }, { status: 404 });
+    let body;
+    try {
+      body = await request.json();
+    } catch (parseError) {
+      return NextResponse.json(
+        { error: "Invalid JSON in request body" },
+        { status: 400 }
+      );
     }
 
-    const { event_type } = await request.json();
+    const { event_type, metadata } = body;
+
+    // Validate required fields
+    if (!event_type) {
+      return NextResponse.json(
+        { error: "Missing required field: event_type" },
+        { status: 400 }
+      );
+    }
+
+    // For public view tracking, we don't require authentication
+    if (event_type === "view") {
+      // Verify the form exists (but don't check ownership for public views)
+      const { data: form, error: formError } = await supabase
+        .from("forms")
+        .select("id")
+        .eq("id", formId)
+        .single();
+
+      if (formError || !form) {
+        return NextResponse.json({ error: "Form not found" }, { status: 404 });
+      }
+    } else {
+      // For other events, require authentication and ownership
+      if (authError || !user) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+
+      // Verify form ownership
+      const { data: form, error: formError } = await supabase
+        .from("forms")
+        .select("id")
+        .eq("id", formId)
+        .eq("user_id", user.id)
+        .single();
+
+      if (formError || !form) {
+        return NextResponse.json({ error: "Form not found" }, { status: 404 });
+      }
+    }
 
     // Handle different analytics events
     switch (event_type) {

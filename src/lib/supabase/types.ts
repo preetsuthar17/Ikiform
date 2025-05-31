@@ -1,6 +1,62 @@
 export interface Database {
   public: {
     Tables: {
+      user_profiles: {
+        Row: {
+          id: string;
+          email: string;
+          full_name: string | null;
+          first_name: string | null;
+          last_name: string | null;
+          provider: string;
+          email_verified: boolean;
+          premium: boolean | null;
+          premium_plan: string | null;
+          premium_expires_at: string | null;
+          subscription_id: string | null;
+          subscription_status: string | null;
+          subscription_period_start: string | null;
+          subscription_period_end: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          email: string;
+          full_name?: string | null;
+          first_name?: string | null;
+          last_name?: string | null;
+          provider: string;
+          email_verified?: boolean;
+          premium?: boolean | null;
+          premium_plan?: string | null;
+          premium_expires_at?: string | null;
+          subscription_id?: string | null;
+          subscription_status?: string | null;
+          subscription_period_start?: string | null;
+          subscription_period_end?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          email?: string;
+          full_name?: string | null;
+          first_name?: string | null;
+          last_name?: string | null;
+          provider?: string;
+          email_verified?: boolean;
+          premium?: boolean | null;
+          premium_plan?: string | null;
+          premium_expires_at?: string | null;
+          subscription_id?: string | null;
+          subscription_status?: string | null;
+          subscription_period_start?: string | null;
+          subscription_period_end?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
       waitlist: {
         Row: {
           id: string;

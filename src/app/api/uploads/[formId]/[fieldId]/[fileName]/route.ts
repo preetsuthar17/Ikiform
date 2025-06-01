@@ -22,7 +22,7 @@ export async function GET(
   request: NextRequest,
   {
     params,
-  }: { params: Promise<{ formId: string; fieldId: string; fileName: string }> }
+  }: { params: Promise<{ formId: string; fieldId: string; fileName: string }> },
 ) {
   try {
     const { formId, fieldId, fileName } = await params;
@@ -63,7 +63,7 @@ export async function GET(
     console.error("File serving error:", error);
     return NextResponse.json(
       { error: "Failed to serve file" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
         *,
         form_fields(*),
         form_analytics(*)
-      `
+      `,
       )
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
@@ -85,7 +85,7 @@ export async function GET(request: NextRequest) {
     console.error("Error fetching forms:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -195,7 +195,7 @@ export async function POST(request: NextRequest) {
     console.error("Error creating form:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

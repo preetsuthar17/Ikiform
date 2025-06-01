@@ -102,8 +102,8 @@ export async function GET(request: NextRequest) {
     const mappedError = errorMap[error] || "unknown_error";
     return NextResponse.redirect(
       `${origin}/auth/login?error=${mappedError}&description=${encodeURIComponent(
-        errorDescription || ""
-      )}`
+        errorDescription || "",
+      )}`,
     );
   }
 
@@ -119,7 +119,7 @@ export async function GET(request: NextRequest) {
     // Exchange code for session with timeout
     const exchangePromise = supabase.auth.exchangeCodeForSession(code);
     const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error("Exchange timeout")), 10000)
+      setTimeout(() => reject(new Error("Exchange timeout")), 10000),
     );
 
     const { data, error: exchangeError } = (await Promise.race([
@@ -137,7 +137,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.redirect(`${origin}/auth/login?error=invalid_code`);
       } else {
         return NextResponse.redirect(
-          `${origin}/auth/login?error=exchange_failed`
+          `${origin}/auth/login?error=exchange_failed`,
         );
       }
     }
@@ -164,7 +164,7 @@ export async function GET(request: NextRequest) {
           // Additional validation: only allow specific paths
           const allowedPaths = ["/dashboard", "/profile", "/settings"];
           const isAllowedPath = allowedPaths.some((path) =>
-            redirectUrl.pathname.startsWith(path)
+            redirectUrl.pathname.startsWith(path),
           );
 
           if (isAllowedPath) {

@@ -39,7 +39,7 @@ import { createClient } from "@/lib/supabase/server";
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ shareUrl: string }> }
+  { params }: { params: Promise<{ shareUrl: string }> },
 ) {
   try {
     const supabase = await createClient();
@@ -58,7 +58,7 @@ export async function GET(
         password_protected,
         form_fields(*),
         form_analytics(views)
-      `
+      `,
       )
       .eq("share_url", shareUrl)
       .eq("is_published", true)
@@ -78,7 +78,7 @@ export async function GET(
       settings: form.settings,
       password_protected: form.password_protected,
       form_fields: form.form_fields.sort(
-        (a, b) => a.field_order - b.field_order
+        (a, b) => a.field_order - b.field_order,
       ),
     };
 
@@ -87,7 +87,7 @@ export async function GET(
     console.error("Error fetching public form:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -122,7 +122,7 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ shareUrl: string }> }
+  { params }: { params: Promise<{ shareUrl: string }> },
 ) {
   try {
     const supabase = await createClient();
@@ -138,7 +138,7 @@ export async function POST(
         `
         *,
         form_fields(*)
-      `
+      `,
       )
       .eq("share_url", shareUrl)
       .eq("is_published", true)
@@ -154,14 +154,14 @@ export async function POST(
       if (!providedPassword || providedPassword !== form.password_hash) {
         return NextResponse.json(
           { error: "Invalid password" },
-          { status: 401 }
+          { status: 401 },
         );
       }
     }
 
     // Validate required fields
     const requiredFields = form.form_fields.filter(
-      (field: any) => field.required
+      (field: any) => field.required,
     );
     const missingFields = requiredFields.filter((field: any) => {
       const value = responses[field.id];
@@ -181,7 +181,7 @@ export async function POST(
           error: "Missing required fields",
           missingFields: missingFields.map((f: any) => f.label),
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -205,7 +205,7 @@ export async function POST(
       console.error("Error creating response:", responseError);
       return NextResponse.json(
         { error: "Failed to submit form" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -222,7 +222,7 @@ export async function POST(
             file_size: file.size,
             mime_type: file.type,
             file_path: file.path,
-          }))
+          })),
       );
 
       if (fileUploadRecords.length > 0) {
@@ -270,7 +270,7 @@ export async function POST(
     console.error("Error submitting public form:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

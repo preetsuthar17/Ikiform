@@ -22,7 +22,7 @@ import { FormField } from "@/lib/types/forms";
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ formId: string }> }
+  { params }: { params: Promise<{ formId: string }> },
 ) {
   try {
     const supabase = await createClient();
@@ -43,7 +43,7 @@ export async function GET(
         *,
         form_fields(*),
         form_analytics(*)
-      `
+      `,
       )
       .eq("id", formId)
       .eq("user_id", user.id)
@@ -67,7 +67,7 @@ export async function GET(
     console.error("Error fetching form:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -125,7 +125,7 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ formId: string }> }
+  { params }: { params: Promise<{ formId: string }> },
 ) {
   try {
     const supabase = await createClient();
@@ -223,7 +223,7 @@ export async function PUT(
             field_order: index,
             validation_rules: field.validation_rules || {},
             conditional_logic: field.conditional_logic || {},
-          })
+          }),
         );
 
         const { error: fieldsError } = await supabase
@@ -241,7 +241,7 @@ export async function PUT(
     console.error("Error updating form:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -270,7 +270,7 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ formId: string }> }
+  { params }: { params: Promise<{ formId: string }> },
 ) {
   try {
     const supabase = await createClient();
@@ -301,7 +301,7 @@ export async function DELETE(
     console.error("Error deleting form:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

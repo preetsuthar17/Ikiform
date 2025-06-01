@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
         *,
         form_fields(*),
         form_analytics(*)
-      `
+      `,
       )
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
@@ -115,7 +115,7 @@ export async function GET(request: NextRequest) {
     console.error("Dashboard analytics error:", error);
     return NextResponse.json(
       { error: "Failed to fetch dashboard analytics" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

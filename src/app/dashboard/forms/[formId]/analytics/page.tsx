@@ -69,7 +69,7 @@ import "react-day-picker/dist/style.css";
 
 // Utility function to detect device type from user agent
 const getDeviceType = (
-  userAgent: string
+  userAgent: string,
 ): "Mobile" | "Desktop" | "Tablet" | "Unknown" => {
   if (!userAgent || userAgent === "unknown") return "Unknown";
 
@@ -121,7 +121,7 @@ export default function FormAnalyticsPage() {
   // State for search, filtering, and date filtering
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<"date" | "email" | "completion_time">(
-    "date"
+    "date",
   );
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
@@ -145,7 +145,7 @@ export default function FormAnalyticsPage() {
             ?.toLowerCase()
             .includes(searchTerm);
           const dataMatch = Object.values(response.response_data).some(
-            (value) => String(value).toLowerCase().includes(searchTerm)
+            (value) => String(value).toLowerCase().includes(searchTerm),
           );
           const idMatch = response.id.toLowerCase().includes(searchTerm);
           const searchMatches =
@@ -178,7 +178,7 @@ export default function FormAnalyticsPage() {
               break;
             case "email":
               comparison = (a.respondent_email || "").localeCompare(
-                b.respondent_email || ""
+                b.respondent_email || "",
               );
               break;
             case "completion_time":
@@ -483,7 +483,7 @@ export default function FormAnalyticsPage() {
                       <span className="text-xs text-[#717171]">
                         {format(
                           new Date(response.submitted_at),
-                          "MMM dd, yyyy HH:mm"
+                          "MMM dd, yyyy HH:mm",
                         )}
                       </span>
                     </div>
@@ -509,7 +509,7 @@ export default function FormAnalyticsPage() {
                                     : String(value) || "(empty)"}
                                 </span>
                               </div>
-                            )
+                            ),
                           )}
                         </div>
                       ) : (
@@ -845,7 +845,7 @@ export default function FormAnalyticsPage() {
                           <span className="text-sm whitespace-nowrap">
                             {format(
                               new Date(response.submitted_at),
-                              "MMM dd, yyyy"
+                              "MMM dd, yyyy",
                             )}
                           </span>
                           <span className="text-xs text-[#717171] whitespace-nowrap">
@@ -857,7 +857,7 @@ export default function FormAnalyticsPage() {
                         <div className="flex items-center gap-1">
                           {(() => {
                             const deviceType = getDeviceType(
-                              response.user_agent || ""
+                              response.user_agent || "",
                             );
                             switch (deviceType) {
                               case "Mobile":
@@ -918,7 +918,7 @@ export default function FormAnalyticsPage() {
                                             : String(value)}
                                       </span>
                                     </div>
-                                  )
+                                  ),
                                 )}
                               </div>
                             </details>
@@ -949,7 +949,7 @@ export default function FormAnalyticsPage() {
                             <DropdownMenuItem
                               onClick={() => {
                                 const csv = Object.entries(
-                                  response.response_data
+                                  response.response_data,
                                 )
                                   .map(([key, value]) => `"${key}","${value}"`)
                                   .join("\n");

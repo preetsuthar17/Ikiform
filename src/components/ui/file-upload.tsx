@@ -78,7 +78,7 @@ export function FileUploadComponent({
             (type) =>
               type.toLowerCase() === `.${fileExtension}` ||
               type.toLowerCase() === fileExtension ||
-              mimeType.startsWith(type.toLowerCase().replace("*", ""))
+              mimeType.startsWith(type.toLowerCase().replace("*", "")),
           );
 
           if (!isAllowed) {
@@ -89,7 +89,7 @@ export function FileUploadComponent({
 
       return null;
     },
-    [state.uploadedFiles.length, options]
+    [state.uploadedFiles.length, options],
   );
 
   const handleFileUpload = useCallback(
@@ -113,7 +113,7 @@ export function FileUploadComponent({
           files,
           formId,
           fieldId,
-          options
+          options,
         );
 
         const newUploadedFiles = [...state.uploadedFiles, ...uploadedFiles];
@@ -148,7 +148,7 @@ export function FileUploadComponent({
       state.uploadedFiles,
       onChange,
       updateState,
-    ]
+    ],
   );
 
   const handleRemoveFile = useCallback(
@@ -158,7 +158,7 @@ export function FileUploadComponent({
       try {
         await FileUploadService.deleteFile(formId, fieldId, fileToRemove.name);
         const newUploadedFiles = state.uploadedFiles.filter(
-          (f) => f.id !== fileToRemove.id
+          (f) => f.id !== fileToRemove.id,
         );
         updateState({ uploadedFiles: newUploadedFiles });
         onChange?.(newUploadedFiles);
@@ -166,7 +166,7 @@ export function FileUploadComponent({
         updateState({ error: "Failed to remove file" });
       }
     },
-    [disabled, state.uploadedFiles, onChange, updateState]
+    [disabled, state.uploadedFiles, onChange, updateState],
   );
 
   const handleDragEnter = useCallback(
@@ -177,7 +177,7 @@ export function FileUploadComponent({
         updateState({ isDragOver: true });
       }
     },
-    [disabled, updateState]
+    [disabled, updateState],
   );
 
   const handleDragLeave = useCallback(
@@ -188,7 +188,7 @@ export function FileUploadComponent({
         updateState({ isDragOver: false });
       }
     },
-    [disabled, updateState]
+    [disabled, updateState],
   );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -208,7 +208,7 @@ export function FileUploadComponent({
       const droppedFiles = Array.from(e.dataTransfer.files);
       handleFileUpload(droppedFiles);
     },
-    [disabled, handleFileUpload, updateState]
+    [disabled, handleFileUpload, updateState],
   );
 
   const handleFileInputChange = useCallback(
@@ -221,7 +221,7 @@ export function FileUploadComponent({
         fileInputRef.current.value = "";
       }
     },
-    [handleFileUpload]
+    [handleFileUpload],
   );
 
   const handleClick = useCallback(() => {
@@ -254,7 +254,7 @@ export function FileUploadComponent({
               ? "border-blue-400 bg-blue-50"
               : "border-gray-300 hover:border-gray-400",
             disabled && "opacity-50 cursor-not-allowed",
-            state.isUploading && "pointer-events-none"
+            state.isUploading && "pointer-events-none",
           )}
           onDragEnter={handleDragEnter}
           onDragLeave={handleDragLeave}
@@ -275,7 +275,7 @@ export function FileUploadComponent({
           <Upload
             className={cn(
               "w-8 h-8 mx-auto mb-2",
-              state.isDragOver ? "text-blue-500" : "text-gray-400"
+              state.isDragOver ? "text-blue-500" : "text-gray-400",
             )}
           />
 

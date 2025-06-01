@@ -18,7 +18,7 @@ import { FormField } from "@/lib/types/forms";
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ formId: string; fieldId: string }> }
+  { params }: { params: Promise<{ formId: string; fieldId: string }> },
 ) {
   try {
     const supabase = await createClient();
@@ -40,7 +40,7 @@ export async function GET(
         `
         *,
         forms!inner(user_id)
-      `
+      `,
       )
       .eq("id", fieldId)
       .eq("form_id", formId)
@@ -56,7 +56,7 @@ export async function GET(
     console.error("Error fetching form field:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -80,7 +80,7 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ formId: string; fieldId: string }> }
+  { params }: { params: Promise<{ formId: string; fieldId: string }> },
 ) {
   try {
     const supabase = await createClient();
@@ -118,14 +118,14 @@ export async function PUT(
         `
         *,
         forms!inner(user_id)
-      `
+      `,
       )
       .single();
 
     if (updateError || !updatedField) {
       return NextResponse.json(
         { error: "Failed to update field" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -134,7 +134,7 @@ export async function PUT(
     console.error("Error updating form field:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -163,7 +163,7 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ formId: string; fieldId: string }> }
+  { params }: { params: Promise<{ formId: string; fieldId: string }> },
 ) {
   try {
     const supabase = await createClient();
@@ -201,7 +201,7 @@ export async function DELETE(
         supabase
           .from("form_fields")
           .update({ field_order: index })
-          .eq("id", field.id)
+          .eq("id", field.id),
       );
 
       await Promise.all(updates);
@@ -212,7 +212,7 @@ export async function DELETE(
     console.error("Error deleting form field:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

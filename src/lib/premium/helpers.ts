@@ -24,7 +24,7 @@ export function requiresPremiumFeature(featureId: string) {
   return function (
     target: any,
     propertyName: string,
-    descriptor: PropertyDescriptor
+    descriptor: PropertyDescriptor,
   ) {
     const method = descriptor.value;
 
@@ -52,7 +52,7 @@ export function requiresPremiumFeature(featureId: string) {
 export function makePremium<T extends (...args: any[]) => any>(
   featureId: string,
   fn: T,
-  fallback?: (...args: Parameters<T>) => any
+  fallback?: (...args: Parameters<T>) => any,
 ): T {
   return ((...args: Parameters<T>) => {
     // All features are now free - no restrictions
@@ -75,7 +75,7 @@ export function makePremium<T extends (...args: any[]) => any>(
 export function conditionalPremium<T>(
   featureId: string,
   premiumFn: () => T,
-  freeFn: () => T
+  freeFn: () => T,
 ): T {
   // All features are now free - always execute the "premium" function
   return premiumFn();
@@ -103,7 +103,7 @@ export function checkLimit<T>(
     | "teamMembers",
   currentUsage: number,
   actionFn: () => T,
-  limitReachedFn: () => T
+  limitReachedFn: () => T,
 ): T {
   // All limits are now unlimited for free plan - always allow action
   return actionFn();
@@ -147,7 +147,7 @@ export function checkFeatureAvailability(featureId: string) {
 export function makePremiumAsync<T extends (...args: any[]) => Promise<any>>(
   featureId: string,
   asyncFn: T,
-  fallback?: (...args: Parameters<T>) => Promise<any>
+  fallback?: (...args: Parameters<T>) => Promise<any>,
 ): T {
   return (async (...args: Parameters<T>) => {
     // All features are now free - no restrictions
@@ -168,7 +168,7 @@ export function makePremiumAsync<T extends (...args: any[]) => Promise<any>>(
  * });
  */
 export function planSpecific<T>(
-  planActions: Partial<Record<PremiumPlan, () => T>>
+  planActions: Partial<Record<PremiumPlan, () => T>>,
 ): T | undefined {
   const currentPlan = premiumChecker.getCurrentPlan();
   const action = planActions[currentPlan];
@@ -192,7 +192,7 @@ export function createUsageAwareFunction<T>(
     | "teamMembers",
   usageGetter: () => number | Promise<number>,
   actionFn: () => T | Promise<T>,
-  limitReachedFn: () => T | Promise<T>
+  limitReachedFn: () => T | Promise<T>,
 ) {
   return async (): Promise<T> => {
     // All limits are now unlimited - always allow action

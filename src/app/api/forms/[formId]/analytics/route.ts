@@ -44,7 +44,7 @@ import { createClient } from "@/lib/supabase/server";
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ formId: string }> }
+  { params }: { params: Promise<{ formId: string }> },
 ) {
   try {
     const supabase = await createClient();
@@ -82,7 +82,7 @@ export async function GET(
       // Handle Supabase "no rows returned" error code
       return NextResponse.json(
         { error: analyticsError.message },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -154,14 +154,14 @@ export async function GET(
     console.error("Error fetching analytics:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ formId: string }> }
+  { params }: { params: Promise<{ formId: string }> },
 ) {
   try {
     const supabase = await createClient();
@@ -191,7 +191,7 @@ export async function POST(
     } catch (parseError) {
       return NextResponse.json(
         { error: "Invalid JSON in request body" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -201,7 +201,7 @@ export async function POST(
     if (!event_type) {
       return NextResponse.json(
         { error: "Missing required field: event_type" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -242,7 +242,7 @@ export async function POST(
           "increment_form_views",
           {
             p_form_id: formId,
-          }
+          },
         );
         if (viewError) {
           console.error("Error incrementing views:", viewError);
@@ -269,7 +269,7 @@ export async function POST(
                       (
                         (existingAnalytics.submissions / newViews) *
                         100
-                      ).toFixed(2)
+                      ).toFixed(2),
                     )
                   : 0;
 
@@ -324,7 +324,7 @@ export async function POST(
       default:
         return NextResponse.json(
           { error: "Invalid event type" },
-          { status: 400 }
+          { status: 400 },
         );
     }
 
@@ -333,7 +333,7 @@ export async function POST(
     console.error("Error tracking analytics event:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

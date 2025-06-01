@@ -178,7 +178,7 @@ export function FormFieldRenderer({
                       handleInputChange([...(value || []), option.value]);
                     } else {
                       handleInputChange(
-                        (value || []).filter((v: string) => v !== option.value)
+                        (value || []).filter((v: string) => v !== option.value),
                       );
                     }
                   }}
@@ -198,7 +198,7 @@ export function FormFieldRenderer({
                 variant="outline"
                 className={cn(
                   "w-full justify-start text-left font-normal",
-                  !value && "text-muted-foreground"
+                  !value && "text-muted-foreground",
                 )}
                 disabled={!previewMode}
               >
@@ -240,7 +240,7 @@ export function FormFieldRenderer({
                   "w-6 h-6 cursor-pointer transition-colors",
                   i < value
                     ? "fill-yellow-400 text-yellow-400"
-                    : "text-[#E5E5E5]"
+                    : "text-[#E5E5E5]",
                 )}
                 onClick={() => previewMode && handleInputChange(i + 1)}
               />
@@ -315,7 +315,7 @@ export function FormFieldRenderer({
           isSelected
             ? "ring-2 ring-[#2D2D2D] border-[#2D2D2D]"
             : "border-[#E5E5E5] hover:border-[#4A4A4A]",
-          previewMode && "cursor-default"
+          previewMode && "cursor-default",
         )}
         onClick={!previewMode ? onSelect : undefined}
       >
@@ -329,7 +329,7 @@ export function FormFieldRenderer({
               transition={{ duration: 0.15 }}
               className={cn(
                 "absolute -top-3 left-4 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-white rounded-lg border border-[#E5E5E5] z-10 shadow-sm",
-                isSelected && "opacity-100"
+                isSelected && "opacity-100",
               )}
             >
               {/* Move Up Button */}

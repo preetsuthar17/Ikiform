@@ -37,7 +37,7 @@ export function useForms() {
         throw err;
       }
     },
-    []
+    [],
   );
 
   const updateForm = useCallback(
@@ -46,7 +46,7 @@ export function useForms() {
       formData: {
         form: Partial<Form>;
         fields?: FormField[];
-      }
+      },
     ) => {
       try {
         const { form } = await formService.updateForm(formId, formData);
@@ -57,7 +57,7 @@ export function useForms() {
         throw err;
       }
     },
-    []
+    [],
   );
 
   const deleteForm = useCallback(async (formId: string) => {
@@ -112,7 +112,7 @@ export function useForm(formId: string) {
       try {
         const { form: updatedForm } = await formService.updateForm(
           formId,
-          formData
+          formData,
         );
         setForm(updatedForm);
         return updatedForm;
@@ -121,7 +121,7 @@ export function useForm(formId: string) {
         throw err;
       }
     },
-    [formId]
+    [formId],
   );
 
   return {
@@ -148,7 +148,7 @@ export function useFormFields(formId: string) {
       setFields(fields);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Failed to fetch form fields"
+        err instanceof Error ? err.message : "Failed to fetch form fields",
       );
     } finally {
       setLoading(false);
@@ -166,18 +166,18 @@ export function useFormFields(formId: string) {
       try {
         const { fields: updatedFields } = await formService.updateFormFields(
           formId,
-          newFields
+          newFields,
         );
         setFields(updatedFields);
         return updatedFields;
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : "Failed to update form fields"
+          err instanceof Error ? err.message : "Failed to update form fields",
         );
         throw err;
       }
     },
-    [formId]
+    [formId],
   );
 
   const addField = useCallback(
@@ -187,18 +187,18 @@ export function useFormFields(formId: string) {
       try {
         const { field: newField } = await formService.addFormField(
           formId,
-          field
+          field,
         );
         setFields((prev) => [...prev, newField]);
         return newField;
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : "Failed to add form field"
+          err instanceof Error ? err.message : "Failed to add form field",
         );
         throw err;
       }
     },
-    [formId]
+    [formId],
   );
 
   const updateField = useCallback(
@@ -209,20 +209,20 @@ export function useFormFields(formId: string) {
         const { field: updatedField } = await formService.updateFormField(
           formId,
           fieldId,
-          fieldData
+          fieldData,
         );
         setFields((prev) =>
-          prev.map((f) => (f.id === fieldId ? updatedField : f))
+          prev.map((f) => (f.id === fieldId ? updatedField : f)),
         );
         return updatedField;
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : "Failed to update form field"
+          err instanceof Error ? err.message : "Failed to update form field",
         );
         throw err;
       }
     },
-    [formId]
+    [formId],
   );
 
   const deleteField = useCallback(
@@ -234,12 +234,12 @@ export function useFormFields(formId: string) {
         setFields((prev) => prev.filter((f) => f.id !== fieldId));
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : "Failed to delete form field"
+          err instanceof Error ? err.message : "Failed to delete form field",
         );
         throw err;
       }
     },
-    [formId]
+    [formId],
   );
 
   return {
@@ -272,7 +272,7 @@ export function useFormResponses(formId: string) {
     } catch (err) {
       console.error("❌ useFormResponses: Error:", err);
       setError(
-        err instanceof Error ? err.message : "Failed to fetch form responses"
+        err instanceof Error ? err.message : "Failed to fetch form responses",
       );
     } finally {
       setLoading(false);
@@ -306,7 +306,7 @@ export function useFormAnalytics(formId: string) {
       setAnalytics(analytics);
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Failed to fetch form analytics"
+        err instanceof Error ? err.message : "Failed to fetch form analytics",
       );
     } finally {
       setLoading(false);
@@ -327,7 +327,7 @@ export function useFormAnalytics(formId: string) {
         console.error("Failed to track analytics event:", err);
       }
     },
-    [formId]
+    [formId],
   );
 
   return {
@@ -373,7 +373,7 @@ export function usePublicForm(shareUrl: string) {
       try {
         const result = await formService.submitPublicForm(
           shareUrl,
-          submissionData
+          submissionData,
         );
         return result;
       } catch (err) {
@@ -381,7 +381,7 @@ export function usePublicForm(shareUrl: string) {
         throw err;
       }
     },
-    [shareUrl]
+    [shareUrl],
   );
 
   return {

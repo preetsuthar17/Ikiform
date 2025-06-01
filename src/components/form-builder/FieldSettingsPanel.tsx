@@ -89,17 +89,17 @@ export function FieldSettingsPanel({
 
   const updateOption = (
     optionId: string,
-    updates: Partial<FormFieldOption>
+    updates: Partial<FormFieldOption>,
   ) => {
     const updatedOptions = localField.options.map((option) =>
-      option.id === optionId ? { ...option, ...updates } : option
+      option.id === optionId ? { ...option, ...updates } : option,
     );
     updateLocalField({ options: updatedOptions });
   };
 
   const removeOption = (optionId: string) => {
     const updatedOptions = localField.options.filter(
-      (option) => option.id !== optionId
+      (option) => option.id !== optionId,
     );
     updateLocalField({ options: updatedOptions });
   };
@@ -114,7 +114,7 @@ export function FieldSettingsPanel({
   };
 
   const hasOptions = ["select", "radio", "checkbox"].includes(
-    localField.field_type
+    localField.field_type,
   );
   const hasValidation = !["section", "divider"].includes(localField.field_type);
 
@@ -283,7 +283,7 @@ export function FieldSettingsPanel({
               <TabsContent value="validation" className="space-y-4 mt-4">
                 {/* Text/Number Validation */}
                 {["text", "email", "textarea", "url", "phone"].includes(
-                  localField.field_type
+                  localField.field_type,
                 ) && (
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
@@ -296,7 +296,7 @@ export function FieldSettingsPanel({
                           onChange={(e) =>
                             updateValidation(
                               "minLength",
-                              parseInt(e.target.value) || undefined
+                              parseInt(e.target.value) || undefined,
                             )
                           }
                           placeholder="0"
@@ -311,7 +311,7 @@ export function FieldSettingsPanel({
                           onChange={(e) =>
                             updateValidation(
                               "maxLength",
-                              parseInt(e.target.value) || undefined
+                              parseInt(e.target.value) || undefined,
                             )
                           }
                           placeholder="255"
@@ -335,7 +335,7 @@ export function FieldSettingsPanel({
 
                 {/* Number/Rating/Slider Validation */}
                 {["number", "rating", "slider"].includes(
-                  localField.field_type
+                  localField.field_type,
                 ) && (
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
@@ -347,7 +347,7 @@ export function FieldSettingsPanel({
                         onChange={(e) =>
                           updateValidation(
                             "min",
-                            parseInt(e.target.value) || undefined
+                            parseInt(e.target.value) || undefined,
                           )
                         }
                         placeholder="0"
@@ -362,7 +362,7 @@ export function FieldSettingsPanel({
                         onChange={(e) =>
                           updateValidation(
                             "max",
-                            parseInt(e.target.value) || undefined
+                            parseInt(e.target.value) || undefined,
                           )
                         }
                         placeholder="100"
@@ -384,7 +384,7 @@ export function FieldSettingsPanel({
                         onChange={(e) =>
                           updateValidation(
                             "fileTypes",
-                            e.target.value.split(",").map((t) => t.trim())
+                            e.target.value.split(",").map((t) => t.trim()),
                           )
                         }
                         placeholder="image/*, .pdf, .doc, .docx"
@@ -402,7 +402,7 @@ export function FieldSettingsPanel({
                           onChange={(e) =>
                             updateValidation(
                               "maxFileSize",
-                              parseInt(e.target.value) || undefined
+                              parseInt(e.target.value) || undefined,
                             )
                           }
                           placeholder="10"
@@ -417,7 +417,7 @@ export function FieldSettingsPanel({
                           onChange={(e) =>
                             updateValidation(
                               "maxFiles",
-                              parseInt(e.target.value) || undefined
+                              parseInt(e.target.value) || undefined,
                             )
                           }
                           placeholder="1"
@@ -645,7 +645,7 @@ export function FieldSettingsPanel({
                                     <Trash2 className="w-3 h-3" />
                                   </Button>
                                 </div>
-                              )
+                              ),
                             )}
                           </div>
                         ) : (

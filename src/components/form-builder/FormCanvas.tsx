@@ -106,7 +106,7 @@ export function FormCanvas({
                     "h-8 w-8 p-0 shadow-none",
                     viewportMode === mode
                       ? "bg-[#2D2D2D] text-white"
-                      : "text-[#717171] hover:text-[#2D2D2D] hover:bg-[#F5F5F5]"
+                      : "text-[#717171] hover:text-[#2D2D2D] hover:bg-[#F5F5F5]",
                   )}
                 >
                   <Icon className="w-4 h-4" />
@@ -124,7 +124,7 @@ export function FormCanvas({
               "gap-2 shadow-none border-[#E5E5E5]",
               previewMode
                 ? "bg-[#2D2D2D] text-white hover:bg-[#1A1A1A]"
-                : "border-[#E5E5E5] text-[#2D2D2D] hover:bg-[#F5F5F5]"
+                : "border-[#E5E5E5] text-[#2D2D2D] hover:bg-[#F5F5F5]",
             )}
           >
             {previewMode ? (
@@ -147,7 +147,7 @@ export function FormCanvas({
         <div
           className={cn(
             "mx-auto transition-all duration-300",
-            getViewportClasses()
+            getViewportClasses(),
           )}
         >
           <Card className="border-0 bg-neutral-50">

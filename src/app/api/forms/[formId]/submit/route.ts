@@ -5,7 +5,7 @@ import { getClientIP, getUserAgent } from "@/lib/utils/ip";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ formId: string }> }
+  { params }: { params: Promise<{ formId: string }> },
 ) {
   try {
     const supabase = await createClient();
@@ -21,7 +21,7 @@ export async function POST(
         `
         *,
         form_fields(*)
-      `
+      `,
       )
       .eq("id", formId)
       .eq("is_published", true)
@@ -30,7 +30,7 @@ export async function POST(
     if (formError || !form) {
       return NextResponse.json(
         { error: "Form not found or not published" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -40,7 +40,7 @@ export async function POST(
       if (!providedPassword) {
         return NextResponse.json(
           { error: "Password required" },
-          { status: 401 }
+          { status: 401 },
         );
       }
 
@@ -48,18 +48,18 @@ export async function POST(
       if (providedPassword !== form.password_hash) {
         return NextResponse.json(
           { error: "Invalid password" },
-          { status: 401 }
+          { status: 401 },
         );
       }
     }
 
     // Validate required fields
     const requiredFields = form.form_fields.filter(
-      (field: { required: any }) => field.required
+      (field: { required: any }) => field.required,
     );
     const missingFields = requiredFields.filter(
       (field: { id: string | number }) =>
-        !responses[field.id] || responses[field.id] === ""
+        !responses[field.id] || responses[field.id] === "",
     );
     if (missingFields.length > 0) {
       console.error("Missing required fields:", {
@@ -75,7 +75,7 @@ export async function POST(
           error: "Missing required fields",
           missingFields: missingFields.map((f: { label: any }) => f.label),
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -155,7 +155,7 @@ export async function POST(
           error: "Validation failed",
           validationErrors,
         },
-        { status: 400 }
+        { status: 400 },
       );
     } // Create form response
     const { data: newResponse, error: responseError } = await supabase
@@ -174,7 +174,7 @@ export async function POST(
       console.error("Error creating response:", responseError);
       return NextResponse.json(
         { error: "Failed to submit form" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -189,14 +189,14 @@ export async function POST(
     console.error("Error submitting form:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ formId: string }> }
+  { params }: { params: Promise<{ formId: string }> },
 ) {
   try {
     const supabase = await createClient();
@@ -233,7 +233,7 @@ export async function GET(
     if (responsesError) {
       return NextResponse.json(
         { error: responsesError.message },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -242,7 +242,7 @@ export async function GET(
     console.error("Error fetching form responses:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

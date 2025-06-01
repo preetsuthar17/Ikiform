@@ -261,7 +261,7 @@ export const PremiumButton: React.FC<PremiumButtonProps> = ({
       className={cn(
         !canAccess && !isComingSoon && "opacity-75 cursor-not-allowed",
         isComingSoon && "opacity-60",
-        className
+        className,
       )}
       title={isComingSoon ? feature?.comingSoonMessage : undefined}
     >
@@ -294,7 +294,7 @@ export const PremiumFeatureList: React.FC<PremiumFeatureListProps> = ({
 
   const getFeatureDisplayInfo = (
     feature: PremiumFeature,
-    hasAccess: boolean
+    hasAccess: boolean,
   ) => {
     const status = feature.status;
 
@@ -349,7 +349,7 @@ export const PremiumFeatureList: React.FC<PremiumFeatureListProps> = ({
             key={featureId}
             className={cn(
               "flex items-center justify-between p-3 rounded-lg border",
-              displayInfo.bgColor
+              displayInfo.bgColor,
             )}
           >
             <div className="flex items-center space-x-3">
@@ -496,7 +496,7 @@ export const ComingSoonCard: React.FC<ComingSoonCardProps> = ({
     <Card
       className={cn(
         "border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50",
-        className
+        className,
       )}
     >
       <CardHeader className="text-center">
@@ -594,7 +594,7 @@ export const PremiumBadge: React.FC<PremiumBadgeProps> = ({
         getVariantColors(),
         sizeClasses[size],
         "font-medium",
-        className
+        className,
       )}
     >
       {getIcon()}
@@ -607,7 +607,7 @@ export const PremiumBadge: React.FC<PremiumBadgeProps> = ({
 export function withPremiumProtection<P extends object>(
   Component: React.ComponentType<P>,
   featureId: string,
-  fallbackComponent?: React.ComponentType<P>
+  fallbackComponent?: React.ComponentType<P>,
 ) {
   return function PremiumProtectedComponent(props: P) {
     const { hasFeature } = usePremium();

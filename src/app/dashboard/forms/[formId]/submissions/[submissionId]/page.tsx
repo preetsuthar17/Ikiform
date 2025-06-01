@@ -45,7 +45,7 @@ export default function SubmissionDetailsPage() {
 
         // Find the specific submission by ID
         const foundSubmission = responses.find(
-          (response) => response.id === submissionId
+          (response) => response.id === submissionId,
         );
 
         if (!foundSubmission) {
@@ -56,7 +56,7 @@ export default function SubmissionDetailsPage() {
       } catch (err) {
         console.error("Error fetching submission:", err);
         setError(
-          err instanceof Error ? err.message : "Failed to fetch submission"
+          err instanceof Error ? err.message : "Failed to fetch submission",
         );
       } finally {
         setLoading(false);
@@ -344,7 +344,7 @@ export default function SubmissionDetailsPage() {
               {form?.title} •{" "}
               {format(
                 new Date(submission.submitted_at),
-                "MMM dd, yyyy 'at' HH:mm"
+                "MMM dd, yyyy 'at' HH:mm",
               )}
             </p>
           </div>
@@ -419,7 +419,7 @@ export default function SubmissionDetailsPage() {
                           Object.entries(submission.response_data).length -
                             1 && <Separator className="mt-6" />}
                       </div>
-                    )
+                    ),
                   )
                 ) : (
                   <div className="text-center py-8">
@@ -456,7 +456,7 @@ export default function SubmissionDetailsPage() {
                     <div>
                       {format(
                         new Date(submission.submitted_at),
-                        "MMM dd, yyyy"
+                        "MMM dd, yyyy",
                       )}
                     </div>
                     <div className="text-xs text-[#717171]">

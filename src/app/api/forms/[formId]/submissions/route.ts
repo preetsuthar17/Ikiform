@@ -11,7 +11,7 @@ import { getClientIP, getUserAgent } from "@/lib/utils/ip";
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ formId: string }> }
+  { params }: { params: Promise<{ formId: string }> },
 ) {
   try {
     const body = await request.json();
@@ -42,7 +42,7 @@ export async function POST(
     console.error("Form submission API error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -52,7 +52,7 @@ export async function POST(
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ formId: string }> }
+  { params }: { params: Promise<{ formId: string }> },
 ) {
   try {
     const supabase = await createClient();
@@ -90,7 +90,7 @@ export async function GET(
 
     // Try direct query to bypass any potential issues
     console.log(
-      "🔍 Direct query: Fetching submissions from form_responses table"
+      "🔍 Direct query: Fetching submissions from form_responses table",
     );
 
     const { data: directSubmissions, error: submissionsError } = await supabase
@@ -103,7 +103,7 @@ export async function GET(
       console.error("❌ Direct query error:", submissionsError);
       return NextResponse.json(
         { error: "Failed to fetch submissions" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -128,7 +128,7 @@ export async function GET(
     console.error("❌ Error fetching submissions:", error);
     return NextResponse.json(
       { error: "Failed to fetch submissions" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

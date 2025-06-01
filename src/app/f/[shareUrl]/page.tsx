@@ -61,7 +61,7 @@ export default function PublicFormPage() {
         setValidationErrors((prev) => ({ ...prev, [fieldId]: "" }));
       }
     },
-    [validationErrors]
+    [validationErrors],
   );
   const validateForm = () => {
     if (!form) return false;
@@ -153,7 +153,7 @@ export default function PublicFormPage() {
                   !rules.allowedTypes.some(
                     (type) =>
                       fileType?.includes(type) ||
-                      file.name.toLowerCase().endsWith(`.${type}`)
+                      file.name.toLowerCase().endsWith(`.${type}`),
                   )
                 ) {
                   errors[field.id] = `File type not allowed for "${file.name}"`;

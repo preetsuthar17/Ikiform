@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     if (userError || !user) {
       return NextResponse.json(
         { error: "User not authenticated" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
       console.error("Error creating user profile:", profileError);
       return NextResponse.json(
         { error: "Failed to create user profile", details: profileError },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     console.error("Create profile API error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

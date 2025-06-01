@@ -35,7 +35,7 @@ import { createClient } from "@/lib/supabase/server";
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ formId: string }> }
+  { params }: { params: Promise<{ formId: string }> },
 ) {
   try {
     const supabase = await createClient();
@@ -59,7 +59,7 @@ export async function GET(
         `
         *,
         form_fields(*)
-      `
+      `,
       )
       .eq("id", formId)
       .eq("user_id", user.id)
@@ -79,7 +79,7 @@ export async function GET(
     if (responsesError) {
       return NextResponse.json(
         { error: responsesError.message },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -94,7 +94,7 @@ export async function GET(
         },
         fields: form.form_fields.sort(
           (a: { field_order: number }, b: { field_order: number }) =>
-            a.field_order - b.field_order
+            a.field_order - b.field_order,
         ),
         responses: responses,
         exported_at: new Date().toISOString(),
@@ -110,7 +110,7 @@ export async function GET(
       // Return CSV format
       const fields = form.form_fields.sort(
         (a: { field_order: number }, b: { field_order: number }) =>
-          a.field_order - b.field_order
+          a.field_order - b.field_order,
       );
 
       // Create CSV headers
@@ -155,7 +155,7 @@ export async function GET(
               }
               return cellStr;
             })
-            .join(",")
+            .join(","),
         )
         .join("\n");
 
@@ -170,7 +170,7 @@ export async function GET(
     console.error("Error exporting form data:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -194,7 +194,7 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ formId: string }> }
+  { params }: { params: Promise<{ formId: string }> },
 ) {
   try {
     const supabase = await createClient();
@@ -239,13 +239,13 @@ export async function POST(
 
     const { data: responses, error: responsesError } = await query.order(
       "submitted_at",
-      { ascending: true }
+      { ascending: true },
     );
 
     if (responsesError) {
       return NextResponse.json(
         { error: responsesError.message },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -268,7 +268,7 @@ export async function POST(
     console.error("Error initiating export:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

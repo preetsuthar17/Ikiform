@@ -131,7 +131,7 @@ export function PublicFormFieldRenderer({
                       onChange([...(value || []), option.value]);
                     } else {
                       onChange(
-                        (value || []).filter((v: string) => v !== option.value)
+                        (value || []).filter((v: string) => v !== option.value),
                       );
                     }
                   }}
@@ -151,7 +151,7 @@ export function PublicFormFieldRenderer({
                 className={cn(
                   "w-full justify-start text-left font-normal",
                   !value && "text-muted-foreground",
-                  error && "border-red-500"
+                  error && "border-red-500",
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
@@ -199,11 +199,11 @@ export function PublicFormFieldRenderer({
                     "w-6 h-6 cursor-pointer transition-colors",
                     i < (value || 0)
                       ? "fill-yellow-400 text-yellow-400"
-                      : "text-gray-300 hover:text-gray-400"
+                      : "text-gray-300 hover:text-gray-400",
                   )}
                   onClick={() => onChange(i + 1)}
                 />
-              )
+              ),
             )}
           </div>
         );

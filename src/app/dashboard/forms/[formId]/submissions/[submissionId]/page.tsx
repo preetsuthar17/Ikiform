@@ -111,29 +111,71 @@ export default function SubmissionDetailsPage() {
     const field = form?.form_fields?.find((f: FormField) => f.id === fieldId);
     return field?.label || fieldId;
   };
-
   const getFieldType = (fieldId: string): string => {
     const field = form?.form_fields?.find((f: FormField) => f.id === fieldId);
-    return field?.type || "text";
+    return field?.field_type || "text";
   };
-
   const formatFieldValue = (value: any, fieldType: string): React.ReactNode => {
     if (value === null || value === undefined) {
       return <span className="text-[#717171] italic">No response</span>;
-    }
-
-    // Handle objects (including file uploads, complex selections, etc.)
+    } // Handle objects (including file uploads, complex selections, etc.)
     if (typeof value === "object") {
       if (Array.isArray(value)) {
         if (value.length === 0) {
           return <span className="text-[#717171] italic">No selections</span>;
         }
+
+        // Handle file upload arrays (for file field types)
+        if (
+          fieldType === "file" &&
+          value.length > 0 &&
+          value[0]?.name &&
+          value[0]?.size
+        ) {
+          return (
+            <div className="space-y-2">
+              {value.map((file, index) => (
+                <div key={index} className="bg-gray-50 p-3 rounded border">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center">
+                      📎
+                    </div>
+                    <div>
+                      <div className="font-medium">{file.name}</div>
+                      <div className="text-xs text-[#717171]">
+                        {file.size
+                          ? `${(file.size / 1024).toFixed(1)} KB`
+                          : "Unknown size"}
+                      </div>
+                    </div>
+                  </div>
+                  {file.url && (
+                    <a
+                      href={file.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline text-sm"
+                    >
+                      View file
+                    </a>
+                  )}
+                </div>
+              ))}
+            </div>
+          );
+        }
+
+        // Handle other arrays (checkboxes, multi-select, etc.)
         return (
           <div className="space-y-1">
             {value.map((item, index) => (
               <div key={index} className="flex items-center gap-2">
                 <span className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></span>
-                <span>{String(item)}</span>
+                <span>
+                  {typeof item === "object"
+                    ? JSON.stringify(item)
+                    : String(item)}
+                </span>
               </div>
             ))}
           </div>
@@ -206,7 +248,7 @@ export default function SubmissionDetailsPage() {
           href={value}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-blue-600 hover:underline break-all"
+          className="text-blue-500 hover:underline break-all"
         >
           {value}
         </a>
@@ -218,20 +260,30 @@ export default function SubmissionDetailsPage() {
       return (
         <a
           href={`mailto:${value}`}
-          className="text-blue-600 hover:underline break-all"
+          className="text-blue-500 hover:underline break-all"
         >
           {value}
         </a>
       );
-    }
-
-    // Handle phone numbers
+    } // Handle phone numbers
     if (fieldType === "phone" || fieldType === "tel") {
       return (
-        <a href={`tel:${value}`} className="text-blue-600 hover:underline">
+        <a href={`tel:${value}`} className="text-blue-500 hover:underline">
           {String(value)}
         </a>
       );
+    } // Handle date fields
+    if (fieldType === "date" && typeof value === "string") {
+      try {
+        const date = new Date(value);
+        if (!isNaN(date.getTime())) {
+          return (
+            <span className="font-medium">{format(date, "MMM dd, yyyy")}</span>
+          );
+        }
+      } catch (error) {
+        // If date parsing fails, fall through to default handling
+      }
     }
 
     // Handle long text
@@ -448,23 +500,18 @@ export default function SubmissionDetailsPage() {
                       {submission.id}
                     </div>
                   </div>
-                </div>
-
+                </div>{" "}
                 <div className="flex justify-between">
                   <span className="text-[#717171] text-sm">Submitted:</span>
                   <div className="text-right text-sm">
                     <div>
                       {format(
                         new Date(submission.submitted_at),
-                        "MMM dd, yyyy"
+                        "MMM dd, yyyy 'at' HH:mm"
                       )}
-                    </div>
-                    <div className="text-xs text-[#717171]">
-                      {format(new Date(submission.submitted_at), "HH:mm:ss")}
                     </div>
                   </div>
                 </div>
-
                 <div className="flex justify-between">
                   <span className="text-[#717171] text-sm">Email:</span>
                   <span className="text-sm">
@@ -473,7 +520,6 @@ export default function SubmissionDetailsPage() {
                     )}
                   </span>
                 </div>
-
                 <div className="flex justify-between">
                   <span className="text-[#717171] text-sm flex items-center gap-1">
                     <Clock className="w-3 h-3" />

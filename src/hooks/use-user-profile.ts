@@ -8,6 +8,7 @@ import {
   getUserProfile,
   UserProfile,
 } from "@/lib/supabase/profiles";
+import { debugAuth, testUpsert } from "@/lib/supabase/debug";
 
 export const useUserProfile = (user: User | null) => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -25,6 +26,16 @@ export const useUserProfile = (user: User | null) => {
       setError(null);
 
       try {
+        // Debug authentication state
+        await debugAuth(user);
+
+        // Test if we can do a simple upsert
+        if (user) {
+          console.log("Testing upsert operation...");
+          const testResult = await testUpsert(user);
+          console.log("Test upsert result:", testResult);
+        }
+
         // First, try to upsert the user profile (create or update)
         const { data: upsertData, error: upsertError } =
           await upsertUserProfile(user);
@@ -34,7 +45,7 @@ export const useUserProfile = (user: User | null) => {
 
           // If upsert fails, try to fetch existing profile
           const { data: fetchData, error: fetchError } = await getUserProfile(
-            user.id,
+            user.id
           );
 
           if (fetchError) {

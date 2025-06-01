@@ -7,7 +7,7 @@ export type WaitlistInsert = Database["public"]["Tables"]["waitlist"]["Insert"];
 export const waitlistService = {
   // Add a new email to the waitlist
   async addToWaitlist(
-    email: string,
+    email: string
   ): Promise<{ success: boolean; message: string; data?: WaitlistEntry }> {
     try {
       const { data: existingEmail, error: checkError } = await supabase

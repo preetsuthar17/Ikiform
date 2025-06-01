@@ -47,9 +47,7 @@
   font-size: 14px;
   text-align: center;
   z-index: 9999999 !important;
-}
-
-.rdp-root {
+  font-weight: 500;
 }
 
 :root {

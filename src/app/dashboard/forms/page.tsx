@@ -74,15 +74,6 @@ export default function FormsPage() {
     }
   };
 
-  const handleDuplicateForm = async (form: Form) => {
-    try {
-      // TODO: Implement form duplication
-      toast.success("Form duplicated successfully");
-    } catch (error) {
-      toast.error("Failed to duplicate form");
-    }
-  };
-
   const handleShareForm = (form: Form) => {
     if (form.share_url) {
       const shareUrl = `${window.location.origin}/f/${form.share_url}`;
@@ -230,12 +221,7 @@ export default function FormsPage() {
                             </Link>
                           </DropdownMenuItem>
                         )}
-                        <DropdownMenuItem
-                          onClick={() => handleDuplicateForm(form)}
-                        >
-                          <Copy className="w-4 h-4 mr-2" />
-                          Duplicate
-                        </DropdownMenuItem>
+
                         {form.is_published && (
                           <DropdownMenuItem
                             onClick={() => handleShareForm(form)}

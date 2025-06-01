@@ -234,21 +234,78 @@ export async function POST(
       if (formError || !form) {
         return NextResponse.json({ error: "Form not found" }, { status: 404 });
       }
-    }
-
-    // Handle different analytics events
+    } // Handle different analytics events
     switch (event_type) {
       case "view":
-        // Increment view count
+        // Increment view count using database function
         const { error: viewError } = await supabase.rpc(
           "increment_form_views",
           {
-            form_id: formId,
+            p_form_id: formId,
           }
         );
-
         if (viewError) {
           console.error("Error incrementing views:", viewError);
+
+          // Fallback: manual increment if function doesn't exist
+          try {
+            const { data: existingAnalytics, error: fetchError } =
+              await supabase
+                .from("form_analytics")
+                .select("*")
+                .eq("form_id", formId)
+                .single();
+
+            if (fetchError && fetchError.code !== "PGRST116") {
+              throw fetchError;
+            }
+
+            if (existingAnalytics) {
+              // Update existing analytics
+              const newViews = existingAnalytics.views + 1;
+              const newConversionRate =
+                newViews > 0
+                  ? Number(
+                      (
+                        (existingAnalytics.submissions / newViews) *
+                        100
+                      ).toFixed(2)
+                    )
+                  : 0;
+
+              const { error: updateError } = await supabase
+                .from("form_analytics")
+                .update({
+                  views: newViews,
+                  conversion_rate: newConversionRate,
+                  updated_at: new Date().toISOString(),
+                })
+                .eq("form_id", formId);
+
+              if (updateError) {
+                console.error("Error updating analytics:", updateError);
+              }
+            } else {
+              // Create new analytics record
+              const { error: insertError } = await supabase
+                .from("form_analytics")
+                .insert({
+                  form_id: formId,
+                  views: 1,
+                  submissions: 0,
+                  average_completion_time: 0,
+                  bounce_rate: 0,
+                  conversion_rate: 0,
+                  updated_at: new Date().toISOString(),
+                });
+
+              if (insertError) {
+                console.error("Error creating analytics record:", insertError);
+              }
+            }
+          } catch (fallbackError) {
+            console.error("Error in view tracking fallback:", fallbackError);
+          }
         }
         break;
 

@@ -61,8 +61,15 @@ export async function POST(
       (field: { id: string | number }) =>
         !responses[field.id] || responses[field.id] === ""
     );
-
     if (missingFields.length > 0) {
+      console.error("Missing required fields:", {
+        formId,
+        missingFields: missingFields.map((f: { label: any; id: any }) => ({
+          id: f.id,
+          label: f.label,
+        })),
+        providedResponses: Object.keys(responses),
+      });
       return NextResponse.json(
         {
           error: "Missing required fields",
@@ -137,8 +144,12 @@ export async function POST(
         }
       }
     }
-
     if (Object.keys(validationErrors).length > 0) {
+      console.error("Validation errors:", {
+        formId,
+        validationErrors,
+        responses,
+      });
       return NextResponse.json(
         {
           error: "Validation failed",
@@ -146,9 +157,7 @@ export async function POST(
         },
         { status: 400 }
       );
-    }
-
-    // Create form response
+    } // Create form response
     const { data: newResponse, error: responseError } = await supabase
       .from("form_responses")
       .insert({
@@ -169,29 +178,8 @@ export async function POST(
       );
     }
 
-    // Update form analytics
-    const { data: analytics } = await supabase
-      .from("form_analytics")
-      .select("*")
-      .eq("form_id", formId)
-      .single();
-
-    if (analytics) {
-      const newSubmissions = analytics.submissions + 1;
-      const totalTime =
-        analytics.average_completion_time * analytics.submissions +
-        (metadata.completion_time || 0);
-      const newAverageTime = totalTime / newSubmissions;
-
-      await supabase
-        .from("form_analytics")
-        .update({
-          submissions: newSubmissions,
-          average_completion_time: newAverageTime,
-          conversion_rate: (newSubmissions / analytics.views) * 100,
-        })
-        .eq("form_id", formId);
-    }
+    // Note: Analytics are automatically updated via database trigger
+    // No manual update needed here
 
     return NextResponse.json({
       message: "Form submitted successfully",

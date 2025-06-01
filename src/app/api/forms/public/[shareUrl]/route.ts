@@ -63,17 +63,12 @@ export async function GET(
       .eq("share_url", shareUrl)
       .eq("is_published", true)
       .single();
-
     if (formError || !form) {
       return NextResponse.json({ error: "Form not found" }, { status: 404 });
     }
 
-    // Update view count
-    const currentViews = form.form_analytics?.[0]?.views || 0;
-    await supabase
-      .from("form_analytics")
-      .update({ views: currentViews + 1 })
-      .eq("form_id", form.id);
+    // Note: View tracking is now handled client-side via SubmissionService.trackFormView()
+    // to avoid duplicate tracking and ensure proper analytics function usage
 
     // Remove sensitive data for public access
     const publicForm = {

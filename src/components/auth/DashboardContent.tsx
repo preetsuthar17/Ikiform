@@ -19,7 +19,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { useUserProfile } from "@/hooks/use-user-profile";
 import { useForms } from "@/lib/hooks/useForms";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Plus,
   FileText,
@@ -27,11 +27,9 @@ import {
   Users,
   Eye,
   Edit,
-  Share,
   Trash2,
   ExternalLink,
   Calendar,
-  TrendingUp,
   Copy,
   LogOut,
 } from "lucide-react";
@@ -58,48 +56,17 @@ export default function DashboardContent({ user }: DashboardContentProps) {
     fetchForms,
     deleteForm,
   } = useForms();
-
   // State
-  const [analytics, setAnalytics] = useState<any>(null);
-  const [analyticsLoading, setAnalyticsLoading] = useState(true);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [formToDelete, setFormToDelete] = useState<{
     id: string;
     title: string;
-  } | null>(null); // Fetch analytics on component mount
-  useEffect(() => {
-    fetchAnalytics();
-  }, []);
-  const fetchAnalytics = async () => {
-    try {
-      setAnalyticsLoading(true);
-      const response = await fetch("/api/dashboard/analytics");
-      if (response.ok) {
-        const data = await response.json();
-        setAnalytics(data.overview);
-      } else {
-        console.error(
-          "Dashboard analytics response not ok:",
-          response.status,
-          response.statusText
-        );
-      }
-    } catch (error) {
-      console.error("Failed to fetch analytics:", error);
-    } finally {
-      setAnalyticsLoading(false);
-    }
-  };
+  } | null>(null);
   const handleCreateForm = () => {
     router.push("/dashboard/forms/new");
   };
-
   const handleEditForm = (formId: string) => {
     router.push(`/dashboard/forms/${formId}`);
-  };
-
-  const handleViewAnalytics = (formId: string) => {
-    router.push(`/dashboard/forms/${formId}/analytics`);
   };
 
   const handleViewForm = (shareUrl: string) => {
@@ -116,20 +83,22 @@ export default function DashboardContent({ user }: DashboardContentProps) {
     setFormToDelete({ id: formId, title: formTitle });
     setDeleteDialogOpen(true);
   };
-
   const confirmDeleteForm = async () => {
     if (!formToDelete) return;
 
     try {
       await deleteForm(formToDelete.id);
       toast.success("Form deleted successfully");
-      fetchAnalytics(); // Refresh analytics
     } catch (error) {
       toast.error("Failed to delete form");
     } finally {
       setDeleteDialogOpen(false);
       setFormToDelete(null);
     }
+  };
+
+  const handleViewAnalytics = (formId: string) => {
+    router.push(`/dashboard/forms/${formId}/analytics`);
   };
 
   const handleSignOut = async () => {
@@ -244,80 +213,8 @@ export default function DashboardContent({ user }: DashboardContentProps) {
             </div>
           </div>
         </div>
-      </div>
-
+      </div>{" "}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Analytics Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="border-none bg-neutral-50">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Forms</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              {analyticsLoading ? (
-                <Skeleton className="h-8 w-16" />
-              ) : (
-                <div className="text-2xl font-bold">
-                  {analytics?.totalForms || 0}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card className="border-none bg-neutral-50">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Views</CardTitle>
-              <Eye className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              {analyticsLoading ? (
-                <Skeleton className="h-8 w-16" />
-              ) : (
-                <div className="text-2xl font-bold">
-                  {analytics?.totalViews || 0}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card className="border-none bg-neutral-50">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Submissions
-              </CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              {analyticsLoading ? (
-                <Skeleton className="h-8 w-16" />
-              ) : (
-                <div className="text-2xl font-bold">
-                  {analytics?.totalSubmissions || 0}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card className="border-none bg-neutral-50">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Conversion Rate
-              </CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              {analyticsLoading ? (
-                <Skeleton className="h-8 w-16" />
-              ) : (
-                <div className="text-2xl font-bold">
-                  {analytics?.averageConversionRate || 0}%
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
         {/* Forms List */}
         <Card className="border-none bg-neutral-50">
           <CardHeader>
@@ -397,32 +294,9 @@ export default function DashboardContent({ user }: DashboardContentProps) {
                               Protected
                             </Badge>
                           )}
-                        </div>
+                        </div>{" "}
                       </div>
                       <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-gray-600">
-                        {" "}
-                        <span className="flex items-center gap-1">
-                          <Eye className="w-4 h-4" />
-                          {(() => {
-                            const analytics = (form as any)?.form_analytics;
-                            const views = Array.isArray(analytics)
-                              ? analytics[0]?.views
-                              : analytics?.views;
-                            return views || 0;
-                          })()}{" "}
-                          views
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Users className="w-4 h-4" />
-                          {(() => {
-                            const analytics = (form as any)?.form_analytics;
-                            const submissions = Array.isArray(analytics)
-                              ? analytics[0]?.submissions
-                              : analytics?.submissions;
-                            return submissions || 0;
-                          })()}{" "}
-                          submissions
-                        </span>
                         <span className="flex items-center gap-1">
                           <Calendar className="w-4 h-4" />
                           {new Date(form.created_at).toLocaleDateString()}
@@ -487,7 +361,6 @@ export default function DashboardContent({ user }: DashboardContentProps) {
           </CardContent>
         </Card>
       </div>
-
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>

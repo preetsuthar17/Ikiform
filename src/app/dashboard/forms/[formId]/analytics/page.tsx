@@ -61,16 +61,10 @@ export default function FormAnalyticsPage() {
   const { form, loading: formLoading } = useForm(formId);
   const { analytics, loading: analyticsLoading } = useFormAnalytics(formId);
   const { responses, loading: responsesLoading } = useFormResponses(formId);
-
   // Debug: Log the responses data when it changes
   useEffect(() => {
     if (responses && responses.length > 0) {
-      console.log("🔍 Analytics Page: Received responses data:", responses);
-      console.log("📊 Analytics Page: First response ID:", responses[0].id);
-      console.log(
-        "📋 Analytics Page: All response IDs:",
-        responses.map((r) => r.id)
-      );
+      // Analytics page has loaded with responses
     }
   }, [responses]);
 

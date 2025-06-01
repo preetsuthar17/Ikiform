@@ -97,7 +97,6 @@ export class SubmissionService {
       };
     }
   }
-
   /**
    * Update form analytics after submission
    */
@@ -106,49 +105,62 @@ export class SubmissionService {
     completionTime?: number
   ): Promise<void> {
     try {
-      // First, try to get existing analytics
-      const { data: existingAnalytics } = await supabase
-        .from("form_analytics")
-        .select("*")
-        .eq("form_id", formId)
-        .single();
+      // Use the database function to increment submissions
+      const { error } = await supabase.rpc("increment_form_submissions", {
+        p_form_id: formId,
+        p_completion_time: completionTime || null,
+      });
 
-      if (existingAnalytics) {
-        // Update existing analytics
-        const newSubmissions = existingAnalytics.submissions + 1;
-        const newAverageTime = completionTime
-          ? Math.round(
-              (existingAnalytics.average_completion_time *
-                existingAnalytics.submissions +
-                completionTime) /
-                newSubmissions
-            )
-          : existingAnalytics.average_completion_time;
+      if (error) {
+        console.error("Failed to increment form submissions:", error);
 
-        const newConversionRate =
-          existingAnalytics.views > 0
-            ? Number(
-                ((newSubmissions / existingAnalytics.views) * 100).toFixed(2)
-              )
-            : 0;
-
-        await supabase
+        // Fallback: manual update if function doesn't exist
+        const { data: existingAnalytics } = await supabase
           .from("form_analytics")
-          .update({
-            submissions: newSubmissions,
-            average_completion_time: newAverageTime,
-            conversion_rate: newConversionRate,
-          })
-          .eq("form_id", formId);
-      } else {
-        // Create new analytics record
-        await supabase.from("form_analytics").insert({
-          form_id: formId,
-          views: 0,
-          submissions: 1,
-          average_completion_time: completionTime || 0,
-          conversion_rate: 0,
-        });
+          .select("*")
+          .eq("form_id", formId)
+          .single();
+
+        if (existingAnalytics) {
+          // Update existing analytics
+          const newSubmissions = existingAnalytics.submissions + 1;
+          const newAverageTime = completionTime
+            ? Math.round(
+                (existingAnalytics.average_completion_time *
+                  existingAnalytics.submissions +
+                  completionTime) /
+                  newSubmissions
+              )
+            : existingAnalytics.average_completion_time;
+
+          const newConversionRate =
+            existingAnalytics.views > 0
+              ? Number(
+                  ((newSubmissions / existingAnalytics.views) * 100).toFixed(2)
+                )
+              : 0;
+
+          await supabase
+            .from("form_analytics")
+            .update({
+              submissions: newSubmissions,
+              average_completion_time: newAverageTime,
+              conversion_rate: newConversionRate,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("form_id", formId);
+        } else {
+          // Create new analytics record
+          await supabase.from("form_analytics").insert({
+            form_id: formId,
+            views: 0,
+            submissions: 1,
+            average_completion_time: completionTime || 0,
+            conversion_rate: 0,
+            bounce_rate: 0,
+            updated_at: new Date().toISOString(),
+          });
+        }
       }
     } catch (error) {
       console.error("Failed to update form analytics:", error);
@@ -158,17 +170,11 @@ export class SubmissionService {
 
   /**
    * Get form submissions for a specific form
-   */
-  static async getFormSubmissions(
+   */ static async getFormSubmissions(
     formId: string,
     supabaseClient?: SupabaseClient
   ) {
     try {
-      console.log(
-        "🔍 SubmissionService: Fetching submissions for formId:",
-        formId
-      );
-
       // Use provided client or default to client-side client
       const client = supabaseClient || supabase;
 
@@ -191,17 +197,10 @@ export class SubmissionService {
         )
         .eq("form_id", formId)
         .order("submitted_at", { ascending: false });
-
       if (error) {
         console.error("❌ SubmissionService: Supabase error:", error);
         throw new Error(`Failed to fetch submissions: ${error.message}`);
       }
-
-      console.log("📊 SubmissionService: Raw data from Supabase:", data);
-      console.log(
-        "📋 SubmissionService: Number of submissions found:",
-        data?.length || 0
-      );
 
       return data;
     } catch (error) {
@@ -244,7 +243,6 @@ export class SubmissionService {
       throw error;
     }
   }
-
   /**
    * Track form view
    */
@@ -252,11 +250,33 @@ export class SubmissionService {
     try {
       // Use the database function to increment views
       const { error } = await supabase.rpc("increment_form_views", {
-        form_id: formId,
+        p_form_id: formId,
       });
 
       if (error) {
-        console.error("Failed to track form view:", error);
+        console.error("Failed to track form view with RPC function:", error);
+
+        // Fallback: Use the analytics API endpoint
+        try {
+          const response = await fetch(`/api/forms/${formId}/analytics`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              event_type: "view",
+            }),
+          });
+
+          if (!response.ok) {
+            console.error(
+              "Analytics API fallback failed:",
+              response.statusText
+            );
+          }
+        } catch (apiError) {
+          console.error("Error with analytics API fallback:", apiError);
+        }
       }
     } catch (error) {
       console.error("Error tracking form view:", error);

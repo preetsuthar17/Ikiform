@@ -18,6 +18,7 @@ import {
   FileUploadService,
   UploadedFile,
 } from "@/lib/services/fileUploadService";
+import { SubmissionService } from "@/lib/services/submissionService";
 import { useRouter } from "next/navigation";
 
 export default function PublicFormPage() {
@@ -42,18 +43,11 @@ export default function PublicFormPage() {
       router.push("/");
     }
   }, [shareUrl, router]);
-
   // Track form view when component mounts
   useEffect(() => {
     if (form?.id) {
-      // Track form view for analytics
-      fetch(`/api/forms/${form.id}/analytics`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ event_type: "view" }),
-      }).catch((error) => {
+      // Track form view for analytics using the service
+      SubmissionService.trackFormView(form.id).catch((error) => {
         console.error("Failed to track form view:", error);
       });
     }

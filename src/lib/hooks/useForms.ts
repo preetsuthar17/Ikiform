@@ -265,18 +265,8 @@ export function useFormResponses(formId: string) {
     try {
       setLoading(true);
       setError(null);
-      console.log(
-        "🔍 useFormResponses: Fetching responses for formId:",
-        formId
-      );
 
       const { responses } = await formService.getFormResponses(formId);
-
-      console.log("📊 useFormResponses: Received responses:", responses);
-      console.log(
-        "📋 useFormResponses: Number of responses:",
-        responses?.length || 0
-      );
 
       setResponses(responses);
     } catch (err) {

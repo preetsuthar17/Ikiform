@@ -49,9 +49,6 @@
   z-index: 9999999 !important;
 }
 
-.rdp-root {
-}
-
 :root {
   --radius: 0.625rem;
   --background: oklch(1 0 0);

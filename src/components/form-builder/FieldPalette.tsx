@@ -104,7 +104,7 @@ export function FieldPalette({ className, onFieldAdd }: FieldPaletteProps) {
 
                   {categoryName !== "payment" && <Separator className="mt-4" />}
                 </motion.div>
-              ),
+              )
             )}
           </motion.div>
         </ScrollArea>
@@ -131,7 +131,7 @@ function FieldPaletteItem({ template, onClick }: FieldPaletteItemProps) {
       onClick={onClick}
       className={cn(
         "group flex items-center gap-3 p-3 rounded-lg bg-white cursor-pointer transition-all duration-200",
-        "hover:border-black/20 border border-transparent shadow-sm hover:shadow-md",
+        "hover:border-black/20 border border-transparent"
       )}
     >
       <motion.div

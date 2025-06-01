@@ -230,7 +230,7 @@ export function FormBuilder({
         // Only auto-save existing forms
         handleSave();
       }
-    }, 5000); // Auto-save after 5 seconds of inactivity
+    }, 10000); // Auto-save after 5 seconds of inactivity
 
     return () => clearTimeout(autoSaveTimeout);
   }, [hasUnsavedChanges, handleSave, form?.id]);

@@ -12,12 +12,12 @@ export interface SubscriptionData {
 // Start a trial for a user
 export const startTrial = async (
   userId: string,
-  trialDays: number = 14,
+  trialDays: number = 14
 ): Promise<{ success: boolean; error?: string }> => {
   const supabase = createClient();
 
   try {
-    const { data, error } = await supabase.rpc("start_user_trial", {
+    const { error } = await supabase.rpc("start_user_trial", {
       user_id: userId,
       trial_days: trialDays,
     });
@@ -36,12 +36,12 @@ export const startTrial = async (
 
 // Upgrade user to premium
 export const upgradeToPremium = async (
-  subscriptionData: SubscriptionData,
+  subscriptionData: SubscriptionData
 ): Promise<{ success: boolean; error?: string }> => {
   const supabase = createClient();
 
   try {
-    const { data, error } = await supabase.rpc("upgrade_user_to_premium", {
+    const { error } = await supabase.rpc("upgrade_user_to_premium", {
       user_id: subscriptionData.userId,
       plan_type: subscriptionData.plan,
       subscription_id_param: subscriptionData.subscriptionId,
@@ -61,12 +61,12 @@ export const upgradeToPremium = async (
 
 // Cancel premium subscription
 export const cancelPremium = async (
-  userId: string,
+  userId: string
 ): Promise<{ success: boolean; error?: string }> => {
   const supabase = createClient();
 
   try {
-    const { data, error } = await supabase.rpc("cancel_user_premium", {
+    const { error } = await supabase.rpc("cancel_user_premium", {
       user_id: userId,
     });
 
@@ -86,7 +86,7 @@ export const cancelPremium = async (
 export const checkFeatureAccess = async (
   userId: string,
   featureName: string,
-  requiredPlan: PremiumPlan = "pro",
+  requiredPlan: PremiumPlan = "pro"
 ): Promise<boolean> => {
   const supabase = createClient();
 
@@ -109,12 +109,11 @@ export const checkFeatureAccess = async (
   }
 };
 
-// Get current usage counts for a user (to be implemented based on your needs)
+// Get current usage counts for a user
 export const getUserUsage = async (userId: string) => {
   const supabase = createClient();
 
   try {
-    // Get form count
     const { count: formCount, error: formError } = await supabase
       .from("forms")
       .select("*", { count: "exact", head: true })
@@ -125,7 +124,6 @@ export const getUserUsage = async (userId: string) => {
       return null;
     }
 
-    // Get total submission count across all forms
     const { count: submissionCount, error: submissionError } = await supabase
       .from("form_responses")
       .select("form_id", { count: "exact", head: true })
@@ -133,7 +131,7 @@ export const getUserUsage = async (userId: string) => {
         "form_id",
         (
           await supabase.from("forms").select("id").eq("user_id", userId)
-        ).data?.map((f) => f.id) || [],
+        ).data?.map((f) => f.id) || []
       );
 
     if (submissionError) {
@@ -143,7 +141,6 @@ export const getUserUsage = async (userId: string) => {
     return {
       forms: formCount || 0,
       submissions: submissionCount || 0,
-      // Add more usage metrics as needed
     };
   } catch (error) {
     console.error("Error getting user usage:", error);

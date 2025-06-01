@@ -61,7 +61,7 @@ export default function FormsPage() {
     (form) =>
       form.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (form.description &&
-        form.description.toLowerCase().includes(searchQuery.toLowerCase())),
+        form.description.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   const handleDeleteForm = async (form: Form) => {
@@ -193,7 +193,7 @@ export default function FormsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredForms.map((form) => (
               <Card key={form.id} className="group border-0">
-                <CardHeader className="pb-3">
+                <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <h3 className="font-semibold text-[#2D2D2D] truncate">
@@ -258,17 +258,6 @@ export default function FormsPage() {
                 </CardHeader>
 
                 <CardContent className="pt-0">
-                  <div className="flex items-center gap-4 text-sm text-[#717171]">
-                    <div className="flex items-center gap-1">
-                      <Users className="w-4 h-4" />
-                      {form.form_analytics?.[0]?.submissions || 0} responses
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Eye className="w-4 h-4" />
-                      {form.form_analytics?.[0]?.views || 0} views
-                    </div>
-                  </div>
-
                   <div className="flex items-center gap-2 mt-3">
                     <Badge
                       variant={form.is_published ? "default" : "secondary"}

@@ -20,7 +20,6 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { Save, Eye, Share, Settings, ChevronLeft, Loader2 } from "lucide-react";
-import { usePremium } from "@/lib/premium";
 
 interface FormBuilderProps {
   initialForm?: Form;
@@ -35,10 +34,6 @@ export function FormBuilder({
   onFormPublished,
   className,
 }: FormBuilderProps) {
-  // Premium integration
-  const { hasFeature, usageLimits, checkUsageLimit, currentPlan } =
-    usePremium();
-
   // Form state
   const [form, setForm] = useState<Form | null>(initialForm || null);
   const [fields, setFields] = useState<FormField[]>(initialForm?.fields || []); // UI state
@@ -86,23 +81,7 @@ export function FormBuilder({
 
   const addField = useCallback(
     (fieldData: Partial<FormField>, insertIndex?: number) => {
-      // Check if field type requires premium
       const fieldType = fieldData.field_type || "text";
-
-      // Check if file upload field requires premium
-      if (fieldType === "file" && !hasFeature("FILE_UPLOADS")) {
-        toast.error("File upload fields require a premium subscription");
-        return;
-      }
-
-      // Check if user has reached field limit
-      const currentFieldCount = fields.length;
-      if (!checkUsageLimit("forms", currentFieldCount)) {
-        toast.error(
-          `You've reached the maximum number of fields (${usageLimits.forms}) for your ${currentPlan} plan`,
-        );
-        return;
-      }
 
       const newField: FormField = {
         id: `field-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -135,18 +114,18 @@ export function FormBuilder({
       setSelectedField(newField.id);
       toast.success("Field added successfully");
     },
-    [form?.id, fields, hasFeature, checkUsageLimit, usageLimits, currentPlan],
+    [form?.id, fields]
   );
 
   const updateField = useCallback(
     (fieldId: string, updates: Partial<FormField>) => {
       setFields((prev) =>
         prev.map((field) =>
-          field.id === fieldId ? { ...field, ...updates } : field,
-        ),
+          field.id === fieldId ? { ...field, ...updates } : field
+        )
       );
     },
-    [],
+    []
   );
 
   const deleteField = useCallback(
@@ -157,7 +136,7 @@ export function FormBuilder({
       }
       toast.success("Field deleted");
     },
-    [selectedField],
+    [selectedField]
   );
 
   const moveField = useCallback((fromIndex: number, toIndex: number) => {
@@ -201,7 +180,7 @@ export function FormBuilder({
         toast.success("Field duplicated");
       }
     },
-    [fields],
+    [fields]
   ); // Save functionality
   const handleSave = useCallback(async () => {
     if (!form) return;
@@ -229,7 +208,7 @@ export function FormBuilder({
           window.history.replaceState(
             null,
             "",
-            `/dashboard/forms/${newForm.form.id}`,
+            `/dashboard/forms/${newForm.form.id}`
           );
         }
       }
@@ -285,7 +264,7 @@ export function FormBuilder({
             window.history.replaceState(
               null,
               "",
-              `/dashboard/forms/${newForm.form.id}`,
+              `/dashboard/forms/${newForm.form.id}`
             );
           }
         }
@@ -336,7 +315,7 @@ export function FormBuilder({
         setEditingTitle(false);
       }
     },
-    [form, updateForm],
+    [form, updateForm]
   );
   const handleTitleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -346,7 +325,7 @@ export function FormBuilder({
         setEditingTitle(false);
       }
     },
-    [handleTitleEdit],
+    [handleTitleEdit]
   );
 
   const selectedFieldData = selectedField

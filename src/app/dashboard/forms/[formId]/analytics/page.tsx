@@ -57,8 +57,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { usePremium } from "@/lib/premium";
-import { PremiumGate } from "@/components/premium/PremiumComponents";
+
 import {
   Popover,
   PopoverContent,
@@ -69,7 +68,7 @@ import "react-day-picker/dist/style.css";
 
 // Utility function to detect device type from user agent
 const getDeviceType = (
-  userAgent: string,
+  userAgent: string
 ): "Mobile" | "Desktop" | "Tablet" | "Unknown" => {
   if (!userAgent || userAgent === "unknown") return "Unknown";
 
@@ -106,22 +105,19 @@ export default function FormAnalyticsPage() {
   const router = useRouter();
   const formId = params.formId as string;
 
-  // Premium integration
-  const { hasFeature } = usePremium();
   const { form, loading: formLoading } = useForm(formId);
   const { analytics, loading: analyticsLoading } = useFormAnalytics(formId);
   const { responses, loading: responsesLoading } = useFormResponses(formId);
 
-  // Debug: Log the responses data when it changes
   useEffect(() => {
     if (responses && responses.length > 0) {
       // Analytics page has loaded with responses
     }
   }, [responses]);
-  // State for search, filtering, and date filtering
+
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<"date" | "email" | "completion_time">(
-    "date",
+    "date"
   );
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
@@ -130,28 +126,24 @@ export default function FormAnalyticsPage() {
     "All" | "Mobile" | "Desktop" | "Tablet" | "Unknown"
   >("All");
 
-  // Loading states for buttons
   const [isExportingCSV, setIsExportingCSV] = useState(false);
   const [isExportingJSON, setIsExportingJSON] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
 
-  // Filter and sort responses with new date and device filters
   const filteredAndSortedResponses = responses
     ? responses
         .filter((response) => {
-          // Search filter
           const searchTerm = searchQuery.toLowerCase();
           const emailMatch = response.respondent_email
             ?.toLowerCase()
             .includes(searchTerm);
           const dataMatch = Object.values(response.response_data).some(
-            (value) => String(value).toLowerCase().includes(searchTerm),
+            (value) => String(value).toLowerCase().includes(searchTerm)
           );
           const idMatch = response.id.toLowerCase().includes(searchTerm);
           const searchMatches =
             !searchQuery || emailMatch || dataMatch || idMatch;
 
-          // Date filter
           const submissionDate = new Date(response.submitted_at);
           const dateMatches =
             (!dateFrom ||
@@ -161,7 +153,6 @@ export default function FormAnalyticsPage() {
               isBefore(submissionDate, endOfDay(dateTo)) ||
               submissionDate.toDateString() === dateTo.toDateString());
 
-          // Device filter
           const deviceType = getDeviceType(response.user_agent || "");
           const deviceMatches =
             deviceFilter === "All" || deviceType === deviceFilter;
@@ -178,7 +169,7 @@ export default function FormAnalyticsPage() {
               break;
             case "email":
               comparison = (a.respondent_email || "").localeCompare(
-                b.respondent_email || "",
+                b.respondent_email || ""
               );
               break;
             case "completion_time":
@@ -189,7 +180,6 @@ export default function FormAnalyticsPage() {
         })
     : [];
 
-  // Clear all filters function
   const clearAllFilters = () => {
     setSearchQuery("");
     setDateFrom(undefined);
@@ -197,16 +187,10 @@ export default function FormAnalyticsPage() {
     setDeviceFilter("All");
   };
 
-  // Check if any filters are active
   const hasActiveFilters =
     searchQuery || dateFrom || dateTo || deviceFilter !== "All";
-  const handleExportData = async (format: "csv" | "json") => {
-    // Check premium access for export functionality
-    if (!hasFeature("EXPORT_RESPONSES")) {
-      toast.error("Export functionality requires a premium plan");
-      return;
-    }
 
+  const handleExportData = async (format: "csv" | "json") => {
     const isCSV = format === "csv";
     const setLoading = isCSV ? setIsExportingCSV : setIsExportingJSON;
 
@@ -228,6 +212,7 @@ export default function FormAnalyticsPage() {
       setLoading(false);
     }
   };
+
   const handleShareForm = async () => {
     if (!form?.share_url) {
       toast.error("Form must be published to share");
@@ -289,39 +274,6 @@ export default function FormAnalyticsPage() {
   const loading = analyticsLoading || responsesLoading;
   const defaultClassNames = getDefaultClassNames();
 
-  // Premium gate for analytics
-  if (!hasFeature("ADVANCED_ANALYTICS")) {
-    return (
-      <div className="container mx-auto py-8 px-4">
-        <div className="flex flex-col gap-4 mb-8">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push("/dashboard/forms")}
-            className="gap-2 self-start"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Forms
-          </Button>
-        </div>
-
-        <PremiumGate
-          featureId="ADVANCED_ANALYTICS"
-          fallback={
-            <div className="text-center py-12">
-              <BarChart3 className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-              <h3 className="text-xl font-semibold mb-2">Advanced Analytics</h3>
-              <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                Get detailed insights about your form performance, submission
-                analytics, and export capabilities with a premium plan.
-              </p>
-            </div>
-          }
-        />
-      </div>
-    );
-  }
-
   return (
     <div className="container mx-auto py-8 px-4">
       {/* Header */}
@@ -353,7 +305,6 @@ export default function FormAnalyticsPage() {
             </Badge>
 
             <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-              {" "}
               {form.is_published && (
                 <Button
                   variant="outline"
@@ -483,7 +434,7 @@ export default function FormAnalyticsPage() {
                       <span className="text-xs text-[#717171]">
                         {format(
                           new Date(response.submitted_at),
-                          "MMM dd, yyyy HH:mm",
+                          "MMM dd, yyyy HH:mm"
                         )}
                       </span>
                     </div>
@@ -509,7 +460,7 @@ export default function FormAnalyticsPage() {
                                     : String(value) || "(empty)"}
                                 </span>
                               </div>
-                            ),
+                            )
                           )}
                         </div>
                       ) : (
@@ -845,7 +796,7 @@ export default function FormAnalyticsPage() {
                           <span className="text-sm whitespace-nowrap">
                             {format(
                               new Date(response.submitted_at),
-                              "MMM dd, yyyy",
+                              "MMM dd, yyyy"
                             )}
                           </span>
                           <span className="text-xs text-[#717171] whitespace-nowrap">
@@ -857,7 +808,7 @@ export default function FormAnalyticsPage() {
                         <div className="flex items-center gap-1">
                           {(() => {
                             const deviceType = getDeviceType(
-                              response.user_agent || "",
+                              response.user_agent || ""
                             );
                             switch (deviceType) {
                               case "Mobile":
@@ -918,7 +869,7 @@ export default function FormAnalyticsPage() {
                                             : String(value)}
                                       </span>
                                     </div>
-                                  ),
+                                  )
                                 )}
                               </div>
                             </details>
@@ -949,7 +900,7 @@ export default function FormAnalyticsPage() {
                             <DropdownMenuItem
                               onClick={() => {
                                 const csv = Object.entries(
-                                  response.response_data,
+                                  response.response_data
                                 )
                                   .map(([key, value]) => `"${key}","${value}"`)
                                   .join("\n");
@@ -1072,74 +1023,35 @@ export default function FormAnalyticsPage() {
                 formats.
               </div>
 
-              {hasFeature("EXPORT_RESPONSES") ? (
-                <>
-                  {" "}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <Button
-                      variant="outline"
-                      onClick={() => handleExportData("csv")}
-                      className="gap-2 w-full"
-                      disabled={
-                        !responses || responses.length === 0 || isExportingCSV
-                      }
-                    >
-                      <Download className="w-4 h-4" />
-                      {isExportingCSV ? "Exporting..." : "Export CSV"}
-                    </Button>
-
-                    <Button
-                      variant="outline"
-                      onClick={() => handleExportData("json")}
-                      className="gap-2 w-full"
-                      disabled={
-                        !responses || responses.length === 0 || isExportingJSON
-                      }
-                    >
-                      <Download className="w-4 h-4" />
-                      {isExportingJSON ? "Exporting..." : "Export JSON"}
-                    </Button>
-                  </div>
-                  {responses && responses.length > 0 && (
-                    <div className="text-xs text-[#717171] mt-3">
-                      Last export: {format(new Date(), "MMM dd, yyyy")}
-                    </div>
-                  )}
-                </>
-              ) : (
-                <PremiumGate
-                  featureId="EXPORT_RESPONSES"
-                  fallback={
-                    <div className="text-center py-6">
-                      <Download className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                      <h4 className="font-medium text-gray-900 mb-2">
-                        Export Responses
-                      </h4>
-                      <p className="text-sm text-gray-600 mb-4">
-                        Export your form responses to CSV or JSON formats with a
-                        premium plan.
-                      </p>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <Button
-                          variant="outline"
-                          disabled
-                          className="gap-2 w-full opacity-50"
-                        >
-                          <Download className="w-4 h-4" />
-                          Export CSV
-                        </Button>
-                        <Button
-                          variant="outline"
-                          disabled
-                          className="gap-2 w-full opacity-50"
-                        >
-                          <Download className="w-4 h-4" />
-                          Export JSON
-                        </Button>
-                      </div>
-                    </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => handleExportData("csv")}
+                  className="gap-2 w-full"
+                  disabled={
+                    !responses || responses.length === 0 || isExportingCSV
                   }
-                />
+                >
+                  <Download className="w-4 h-4" />
+                  {isExportingCSV ? "Exporting..." : "Export CSV"}
+                </Button>
+
+                <Button
+                  variant="outline"
+                  onClick={() => handleExportData("json")}
+                  className="gap-2 w-full"
+                  disabled={
+                    !responses || responses.length === 0 || isExportingJSON
+                  }
+                >
+                  <Download className="w-4 h-4" />
+                  {isExportingJSON ? "Exporting..." : "Export JSON"}
+                </Button>
+              </div>
+              {responses && responses.length > 0 && (
+                <div className="text-xs text-[#717171] mt-3">
+                  Last export: {format(new Date(), "MMM dd, yyyy")}
+                </div>
               )}
             </div>
           </CardContent>

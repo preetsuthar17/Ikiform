@@ -231,6 +231,99 @@ export default function FormAnalyticsPage() {
     }
   };
 
+  // Replace the getFieldLabel function with a more robust version
+  const getFieldLabel = (fieldId: string): string => {
+    if (formLoading || !form?.form_fields) {
+      return fieldId;
+    }
+
+    // First try direct ID match
+    const directMatch = form.form_fields.find(
+      (f: { id: string }) => f.id === fieldId
+    );
+    if (directMatch) {
+      return directMatch.label || directMatch.name || fieldId;
+    }
+
+    // If no direct match, try to infer based on field type and response data
+    if (responses && responses.length > 0) {
+      const sampleResponse = responses[0];
+      const fieldValue = sampleResponse.response_data[fieldId];
+
+      // Try to match by field type based on the value
+      if (fieldValue && typeof fieldValue === "string") {
+        // Check if it looks like an email
+        if (fieldValue.includes("@") && fieldValue.includes(".")) {
+          const emailField = form.form_fields.find(
+            (f: { field_type: string }) => f.field_type === "email"
+          );
+          if (emailField) {
+            console.log(
+              `Mapping ${fieldId} to email field: ${emailField.label}`
+            );
+            return emailField.label || "Email";
+          }
+        }
+
+        // Check if it looks like a phone number
+        if (/^\+?[\d\s\-\(\)]+$/.test(fieldValue)) {
+          const phoneField = form.form_fields.find(
+            (f: { field_type: string }) => f.field_type === "phone"
+          );
+          if (phoneField) {
+            return phoneField.label || "Phone";
+          }
+        }
+
+        // Check if it looks like a URL
+        if (
+          fieldValue.startsWith("http://") ||
+          fieldValue.startsWith("https://")
+        ) {
+          const urlField = form.form_fields.find(
+            (f: { field_type: string }) => f.field_type === "url"
+          );
+          if (urlField) {
+            return urlField.label || "URL";
+          }
+        }
+      }
+
+      // If we have only one field in the form, it's probably that field
+      if (form.form_fields.length === 1) {
+        console.log(
+          `Only one field available, using: ${form.form_fields[0].label}`
+        );
+        return form.form_fields[0].label || form.form_fields[0].name || "Field";
+      }
+    }
+
+    // Fallback: return a shortened version of the ID
+    return `Field (${fieldId.slice(0, 8)}...)`;
+  };
+
+  // Add this useEffect to debug the data structure
+  useEffect(() => {
+    if (form && responses && responses.length > 0) {
+      console.log("=== DEBUGGING FORM STRUCTURE ===");
+      console.log("Form fields:", form.form_fields);
+      console.log("Sample response:", responses[0]);
+      console.log(
+        "Response data keys:",
+        Object.keys(responses[0].response_data)
+      );
+      console.log(
+        "Form field IDs:",
+        form.form_fields?.map((f: { id: any; label: any; name: any }) => ({
+          id: f.id,
+          label: f.label,
+          name: f.name,
+        }))
+      );
+      console.log("================================");
+    }
+  }, [form, responses]);
+
   if (formLoading) {
     return (
       <div className="container mx-auto py-8 px-4">
@@ -427,7 +520,7 @@ export default function FormAnalyticsPage() {
                         <span className="text-sm font-medium text-[#2D2D2D]">
                           Submission ID:
                         </span>
-                        <code className="text-xs bg-gray-100 px-2 py-1 rounded font-mono">
+                        <code className="text-xs bg-gray-100 px-2 py-1 rounded font-jetbrains-mono">
                           {response.id}
                         </code>
                       </div>
@@ -449,10 +542,10 @@ export default function FormAnalyticsPage() {
                             ([key, value]) => (
                               <div
                                 key={key}
-                                className="flex flex-col sm:flex-row sm:items-start gap-2 text-sm"
+                                className="flex flex-col sm:flex-row sm:items-start gap-1 text-sm"
                               >
-                                <span className="font-medium text-[#2D2D2D] min-w-0 sm:min-w-[150px]">
-                                  {key}:
+                                <span className="font-medium text-[#2D2D2D] ">
+                                  {getFieldLabel(key)}:
                                 </span>
                                 <span className="text-[#717171] break-words flex-1">
                                   {typeof value === "object"
@@ -780,7 +873,7 @@ export default function FormAnalyticsPage() {
                 <TableBody>
                   {filteredAndSortedResponses.map((response) => (
                     <TableRow key={response.id}>
-                      <TableCell className="font-mono text-xs">
+                      <TableCell className="font-jetbrains-mono text-xs">
                         <div className="flex items-center gap-2 min-w-0">
                           <Link
                             href={`/dashboard/forms/${formId}/submissions/${response.id}`}
@@ -859,7 +952,7 @@ export default function FormAnalyticsPage() {
                                       className="border-l-2 border-gray-200 pl-2"
                                     >
                                       <span className="font-medium text-[#2D2D2D] break-words">
-                                        {key}:
+                                        {getFieldLabel(key)}:
                                       </span>
                                       <span className="ml-1 text-[#717171] break-words">
                                         {typeof value === "object"

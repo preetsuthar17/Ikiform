@@ -1,7 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -47,6 +46,7 @@
   font-family: var(--font-inter);
   font-size: 14px;
   text-align: center;
+  z-index: 9999999 !important;
 }
 
 :root {

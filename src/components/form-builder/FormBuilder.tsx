@@ -3,7 +3,7 @@
 
 import React, { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import { Form, FormField, FIELD_TEMPLATES } from "@/lib/types/forms";
 import { formService } from "@/lib/services/formService";
 import { FieldPalette } from "./FieldPalette";
@@ -41,14 +41,14 @@ export function FormBuilder({
 
   // Form state
   const [form, setForm] = useState<Form | null>(initialForm || null);
-  const [fields, setFields] = useState<FormField[]>(initialForm?.fields || []);
-  // UI state
+  const [fields, setFields] = useState<FormField[]>(initialForm?.fields || []); // UI state
   const [selectedField, setSelectedField] = useState<string | null>(null);
   const [previewMode, setPreviewMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showFormSettings, setShowFormSettings] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [editingTitle, setEditingTitle] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
   const router = useRouter();
 
   // Initialize form if not provided
@@ -234,7 +234,6 @@ export function FormBuilder({
         }
       }
       setHasUnsavedChanges(false);
-      toast.success("Form saved successfully");
     } catch (error) {
       toast.error("Failed to save form");
       console.error("Save error:", error);
@@ -306,7 +305,6 @@ export function FormBuilder({
       });
       setForm(publishedForm.form);
       onFormPublished?.(publishedForm.form);
-      toast.success("Form published successfully");
     } catch (error) {
       toast.error("Failed to publish form");
       console.error("Publish error:", error);
@@ -314,10 +312,10 @@ export function FormBuilder({
       setIsSaving(false);
     }
   }, [form, fields, onFormPublished, hasUnsavedChanges]);
-
   const handleShare = useCallback(async () => {
     if (!form?.share_url) return;
 
+    setIsSharing(true);
     const shareUrl = `${window.location.origin}/f/${form.share_url}`;
     try {
       await navigator.clipboard.writeText(shareUrl);
@@ -326,6 +324,8 @@ export function FormBuilder({
       // Fallback for browsers that don't support clipboard API
       console.error("Failed to copy to clipboard:", error);
       toast.error("Failed to copy link");
+    } finally {
+      setIsSharing(false);
     }
   }, [form?.share_url]);
 
@@ -428,10 +428,11 @@ export function FormBuilder({
             <Button
               size="sm"
               onClick={handleShare}
+              disabled={isSharing}
               className="gap-2 shadow-none"
             >
               <Share className="w-4 h-4" />
-              Share
+              {isSharing ? "Copied!" : "Share"}
             </Button>
           ) : (
             <Button

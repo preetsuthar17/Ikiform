@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import { Eye, EyeOff, Lock, Send, CheckCircle } from "lucide-react";
 import { FormField } from "@/lib/types/forms";
 import {

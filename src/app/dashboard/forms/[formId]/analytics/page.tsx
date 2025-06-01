@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import {
@@ -118,7 +118,6 @@ export default function FormAnalyticsPage() {
       // Analytics page has loaded with responses
     }
   }, [responses]);
-
   // State for search, filtering, and date filtering
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<"date" | "email" | "completion_time">(
@@ -130,6 +129,11 @@ export default function FormAnalyticsPage() {
   const [deviceFilter, setDeviceFilter] = useState<
     "All" | "Mobile" | "Desktop" | "Tablet" | "Unknown"
   >("All");
+
+  // Loading states for buttons
+  const [isExportingCSV, setIsExportingCSV] = useState(false);
+  const [isExportingJSON, setIsExportingJSON] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
 
   // Filter and sort responses with new date and device filters
   const filteredAndSortedResponses = responses
@@ -196,7 +200,6 @@ export default function FormAnalyticsPage() {
   // Check if any filters are active
   const hasActiveFilters =
     searchQuery || dateFrom || dateTo || deviceFilter !== "All";
-
   const handleExportData = async (format: "csv" | "json") => {
     // Check premium access for export functionality
     if (!hasFeature("EXPORT_RESPONSES")) {
@@ -204,7 +207,11 @@ export default function FormAnalyticsPage() {
       return;
     }
 
+    const isCSV = format === "csv";
+    const setLoading = isCSV ? setIsExportingCSV : setIsExportingJSON;
+
     try {
+      setLoading(true);
       const blob = await formService.exportFormData(formId, format);
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -217,16 +224,25 @@ export default function FormAnalyticsPage() {
       toast.success(`Data exported as ${format.toUpperCase()}`);
     } catch (error) {
       toast.error("Failed to export data");
+    } finally {
+      setLoading(false);
     }
   };
-
-  const handleShareForm = () => {
-    if (form?.share_url) {
-      const shareUrl = `${window.location.origin}/f/${form.share_url}`;
-      navigator.clipboard.writeText(shareUrl);
-      toast.success("Share link copied to clipboard");
-    } else {
+  const handleShareForm = async () => {
+    if (!form?.share_url) {
       toast.error("Form must be published to share");
+      return;
+    }
+
+    try {
+      setIsSharing(true);
+      const shareUrl = `${window.location.origin}/f/${form.share_url}`;
+      await navigator.clipboard.writeText(shareUrl);
+      toast.success("Share link copied to clipboard");
+    } catch (error) {
+      toast.error("Failed to copy share link");
+    } finally {
+      setIsSharing(false);
     }
   };
 
@@ -337,18 +353,19 @@ export default function FormAnalyticsPage() {
             </Badge>
 
             <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              {" "}
               {form.is_published && (
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleShareForm}
+                  disabled={isSharing}
                   className="gap-2 w-full sm:w-auto"
                 >
                   <Share className="w-4 h-4" />
-                  Share
+                  {isSharing ? "Copied!" : "Share"}
                 </Button>
               )}
-
               <Button
                 variant="outline"
                 size="sm"
@@ -971,11 +988,15 @@ export default function FormAnalyticsPage() {
               </h3>
               <p className="text-[#717171] mb-6">
                 Share your form to start collecting responses
-              </p>
+              </p>{" "}
               {form.is_published && form.share_url && (
-                <Button onClick={handleShareForm} className="gap-2">
+                <Button
+                  onClick={handleShareForm}
+                  disabled={isSharing}
+                  className="gap-2"
+                >
                   <Share className="w-4 h-4" />
-                  Copy Share Link
+                  {isSharing ? "Copied!" : "Copy Share Link"}
                 </Button>
               )}
             </div>
@@ -1053,28 +1074,32 @@ export default function FormAnalyticsPage() {
 
               {hasFeature("EXPORT_RESPONSES") ? (
                 <>
+                  {" "}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <Button
                       variant="outline"
                       onClick={() => handleExportData("csv")}
                       className="gap-2 w-full"
-                      disabled={!responses || responses.length === 0}
+                      disabled={
+                        !responses || responses.length === 0 || isExportingCSV
+                      }
                     >
                       <Download className="w-4 h-4" />
-                      Export CSV
+                      {isExportingCSV ? "Exporting..." : "Export CSV"}
                     </Button>
 
                     <Button
                       variant="outline"
                       onClick={() => handleExportData("json")}
                       className="gap-2 w-full"
-                      disabled={!responses || responses.length === 0}
+                      disabled={
+                        !responses || responses.length === 0 || isExportingJSON
+                      }
                     >
                       <Download className="w-4 h-4" />
-                      Export JSON
+                      {isExportingJSON ? "Exporting..." : "Export JSON"}
                     </Button>
                   </div>
-
                   {responses && responses.length > 0 && (
                     <div className="text-xs text-[#717171] mt-3">
                       Last export: {format(new Date(), "MMM dd, yyyy")}
@@ -1160,14 +1185,16 @@ export default function FormAnalyticsPage() {
                     <div className="flex flex-col sm:flex-row gap-2">
                       <code className="flex-1 px-2 py-1 bg-gray-100 rounded text-sm break-all min-w-0 font-jetbrains-mono text-center items-center flex">
                         {`${window.location.origin}/f/${form.share_url}`}
-                      </code>
+                      </code>{" "}
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={handleShareForm}
+                        disabled={isSharing}
                         className="w-full sm:w-auto flex-shrink-0"
                       >
                         <Share className="w-4 h-4" />
+                        {isSharing ? "Copied!" : ""}
                       </Button>
                     </div>
                   </div>

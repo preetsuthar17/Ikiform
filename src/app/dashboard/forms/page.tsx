@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import { useForms } from "@/lib/hooks/useForms";
 import { Form } from "@/lib/types/forms";
 import { Button } from "@/components/ui/button";

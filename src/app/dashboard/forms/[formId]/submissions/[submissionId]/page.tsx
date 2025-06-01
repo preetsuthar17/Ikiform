@@ -18,7 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import { useForm } from "@/lib/hooks/useForms";
 import { formService } from "@/lib/services/formService";
 import { FormResponse, FormField } from "@/lib/types/forms";

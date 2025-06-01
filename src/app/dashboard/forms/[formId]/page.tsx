@@ -6,7 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useForm } from "@/lib/hooks/useForms";
 import { FormBuilder } from "@/components/form-builder";
 import { Form } from "@/lib/types/forms";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
@@ -20,7 +20,6 @@ export default function EditFormPage() {
 
   const handleFormSaved = (updatedForm: Form) => {
     console.log("Form updated:", updatedForm);
-    toast.success("Form saved successfully!");
   };
 
   const handleFormPublished = (publishedForm: Form) => {

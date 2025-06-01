@@ -33,7 +33,7 @@ import {
   Copy,
   LogOut,
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 
 interface DashboardContentProps {
   user: User;
@@ -55,13 +55,13 @@ export default function DashboardContent({ user }: DashboardContentProps) {
     error: formsError,
     fetchForms,
     deleteForm,
-  } = useForms();
-  // State
+  } = useForms(); // State
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [formToDelete, setFormToDelete] = useState<{
     id: string;
     title: string;
   } | null>(null);
+  const [copyingLinks, setCopyingLinks] = useState<Set<string>>(new Set());
   const handleCreateForm = () => {
     router.push("/dashboard/forms/new");
   };
@@ -72,11 +72,21 @@ export default function DashboardContent({ user }: DashboardContentProps) {
   const handleViewForm = (shareUrl: string) => {
     window.open(`/f/${shareUrl}`, "_blank");
   };
-
-  const handleCopyLink = (shareUrl: string) => {
-    const url = `${window.location.origin}/f/${shareUrl}`;
-    navigator.clipboard.writeText(url);
-    toast.success("Form link copied to clipboard!");
+  const handleCopyLink = async (shareUrl: string) => {
+    setCopyingLinks((prev) => new Set(prev).add(shareUrl));
+    try {
+      const url = `${window.location.origin}/f/${shareUrl}`;
+      await navigator.clipboard.writeText(url);
+      toast.success("Form link copied to clipboard!");
+    } catch (error) {
+      toast.error("Failed to copy link");
+    } finally {
+      setCopyingLinks((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(shareUrl);
+        return newSet;
+      });
+    }
   };
 
   const handleDeleteForm = (formId: string, formTitle: string) => {
@@ -332,15 +342,19 @@ export default function DashboardContent({ user }: DashboardContentProps) {
                             className="flex-shrink-0"
                           >
                             <ExternalLink className="w-4 h-4" />
-                          </Button>
+                          </Button>{" "}
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => handleCopyLink(form.share_url!)}
                             title="Copy link"
                             className="flex-shrink-0"
+                            disabled={copyingLinks.has(form.share_url!)}
                           >
                             <Copy className="w-4 h-4" />
+                            {copyingLinks.has(form.share_url!) && (
+                              <span className="ml-1 text-xs">Copied!</span>
+                            )}
                           </Button>
                         </>
                       )}

@@ -4,7 +4,7 @@
 import { useRouter } from "next/navigation";
 import { FormBuilder } from "@/components/form-builder";
 import { Form } from "@/lib/types/forms";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 
 export default function NewFormPage() {
   const router = useRouter();

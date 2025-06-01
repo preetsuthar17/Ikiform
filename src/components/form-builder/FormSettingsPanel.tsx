@@ -49,7 +49,7 @@ import {
 // Premium system imports
 import { usePremium } from "@/lib/premium";
 import { PremiumGate } from "@/components/premium/PremiumComponents";
-import { toast } from "sonner";
+import { toast } from "react-hot-toast";
 import { Crown } from "lucide-react";
 
 interface FormSettingsPanelProps {
@@ -65,6 +65,7 @@ export function FormSettingsPanel({
 }: FormSettingsPanelProps) {
   const [localForm, setLocalForm] = useState(form);
   const [isDirty, setIsDirty] = useState(false);
+  const [isCopyingUrl, setIsCopyingUrl] = useState(false);
   const { hasFeature } = usePremium();
 
   useEffect(() => {
@@ -86,7 +87,6 @@ export function FormSettingsPanel({
     onUpdate(localForm);
     setIsDirty(false);
   };
-
   const handleCancel = () => {
     if (isDirty) {
       if (
@@ -96,6 +96,22 @@ export function FormSettingsPanel({
       }
     } else {
       onClose();
+    }
+  };
+
+  const handleCopyUrl = async () => {
+    if (!localForm.share_url) return;
+
+    setIsCopyingUrl(true);
+    try {
+      const shareUrl = `${window.location.origin}/f/${localForm.share_url}`;
+      await navigator.clipboard.writeText(shareUrl);
+      toast.success("Share URL copied to clipboard!");
+    } catch (error) {
+      console.error("Failed to copy URL:", error);
+      toast.error("Failed to copy URL");
+    } finally {
+      setIsCopyingUrl(false);
     }
   };
 
@@ -198,15 +214,20 @@ export function FormSettingsPanel({
 
                     {localForm.share_url && (
                       <div className="flex flex-col gap-4">
-                        <Label>Share URL</Label>
+                        <Label>Share URL</Label>{" "}
                         <div className="flex gap-2">
                           <Input
                             className="bg-white shadow-none py-5 rounded-xl border"
                             value={`${window.location.origin}/f/${localForm.share_url}`}
                             readOnly
                           />
-                          <Button variant="outline" size="sm">
-                            Copy
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleCopyUrl}
+                            disabled={isCopyingUrl}
+                          >
+                            {isCopyingUrl ? "Copied!" : "Copy"}
                           </Button>
                         </div>
                       </div>

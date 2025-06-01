@@ -1,10 +1,15 @@
-// filepath: src/app/dashboard/forms/[formId]/analytics/page.tsx
-// Form Analytics Dashboard
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { formatDistanceToNow, format } from "date-fns";
+import {
+  formatDistanceToNow,
+  format,
+  isAfter,
+  isBefore,
+  startOfDay,
+  endOfDay,
+} from "date-fns";
 import {
   useForm,
   useFormAnalytics,
@@ -38,6 +43,11 @@ import {
   Filter,
   ChevronDown,
   ExternalLink,
+  CalendarIcon,
+  Smartphone,
+  Monitor,
+  Tablet,
+  X,
 } from "lucide-react";
 import {
   Table,
@@ -49,6 +59,46 @@ import {
 } from "@/components/ui/table";
 import { usePremium } from "@/lib/premium";
 import { PremiumGate } from "@/components/premium/PremiumComponents";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+
+// Utility function to detect device type from user agent
+const getDeviceType = (
+  userAgent: string
+): "Mobile" | "Desktop" | "Tablet" | "Unknown" => {
+  if (!userAgent || userAgent === "unknown") return "Unknown";
+
+  const ua = userAgent.toLowerCase();
+
+  // Check for mobile first
+  if (
+    ua.includes("mobile") ||
+    ua.includes("android") ||
+    ua.includes("iphone")
+  ) {
+    return "Mobile";
+  }
+
+  // Check for tablet
+  if (ua.includes("tablet") || ua.includes("ipad")) {
+    return "Tablet";
+  }
+
+  // Check for desktop indicators
+  if (
+    ua.includes("windows") ||
+    ua.includes("macintosh") ||
+    ua.includes("linux")
+  ) {
+    return "Desktop";
+  }
+  // Default to Desktop for unknown cases
+  return "Desktop";
+};
 
 export default function FormAnalyticsPage() {
   const params = useParams();
@@ -57,10 +107,10 @@ export default function FormAnalyticsPage() {
 
   // Premium integration
   const { hasFeature } = usePremium();
-
   const { form, loading: formLoading } = useForm(formId);
   const { analytics, loading: analyticsLoading } = useFormAnalytics(formId);
   const { responses, loading: responsesLoading } = useFormResponses(formId);
+
   // Debug: Log the responses data when it changes
   useEffect(() => {
     if (responses && responses.length > 0) {
@@ -68,17 +118,23 @@ export default function FormAnalyticsPage() {
     }
   }, [responses]);
 
-  // State for search and filtering
+  // State for search, filtering, and date filtering
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<"date" | "email" | "completion_time">(
     "date"
   );
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
+  const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
+  const [deviceFilter, setDeviceFilter] = useState<
+    "All" | "Mobile" | "Desktop" | "Tablet" | "Unknown"
+  >("All");
 
-  // Filter and sort responses
+  // Filter and sort responses with new date and device filters
   const filteredAndSortedResponses = responses
     ? responses
         .filter((response) => {
+          // Search filter
           const searchTerm = searchQuery.toLowerCase();
           const emailMatch = response.respondent_email
             ?.toLowerCase()
@@ -87,7 +143,25 @@ export default function FormAnalyticsPage() {
             (value) => String(value).toLowerCase().includes(searchTerm)
           );
           const idMatch = response.id.toLowerCase().includes(searchTerm);
-          return !searchQuery || emailMatch || dataMatch || idMatch;
+          const searchMatches =
+            !searchQuery || emailMatch || dataMatch || idMatch;
+
+          // Date filter
+          const submissionDate = new Date(response.submitted_at);
+          const dateMatches =
+            (!dateFrom ||
+              isAfter(submissionDate, startOfDay(dateFrom)) ||
+              submissionDate.toDateString() === dateFrom.toDateString()) &&
+            (!dateTo ||
+              isBefore(submissionDate, endOfDay(dateTo)) ||
+              submissionDate.toDateString() === dateTo.toDateString());
+
+          // Device filter
+          const deviceType = getDeviceType(response.user_agent || "");
+          const deviceMatches =
+            deviceFilter === "All" || deviceType === deviceFilter;
+
+          return searchMatches && dateMatches && deviceMatches;
         })
         .sort((a, b) => {
           let comparison = 0;
@@ -109,6 +183,18 @@ export default function FormAnalyticsPage() {
           return sortOrder === "asc" ? comparison : -comparison;
         })
     : [];
+
+  // Clear all filters function
+  const clearAllFilters = () => {
+    setSearchQuery("");
+    setDateFrom(undefined);
+    setDateTo(undefined);
+    setDeviceFilter("All");
+  };
+
+  // Check if any filters are active
+  const hasActiveFilters =
+    searchQuery || dateFrom || dateTo || deviceFilter !== "All";
 
   const handleExportData = async (format: "csv" | "json") => {
     // Check premium access for export functionality
@@ -275,8 +361,7 @@ export default function FormAnalyticsPage() {
             </div>
           </div>
         </div>
-      </div>
-
+      </div>{" "}
       {/* Overview Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
         <Card className="bg-neutral-50 border-0">
@@ -296,7 +381,6 @@ export default function FormAnalyticsPage() {
             )}
           </CardContent>
         </Card>
-
         <Card className="bg-neutral-50 border-0">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-[#717171] flex items-center gap-2">
@@ -314,7 +398,6 @@ export default function FormAnalyticsPage() {
             )}
           </CardContent>
         </Card>
-
         <Card className="bg-neutral-50 border-0">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-[#717171] flex items-center gap-2">
@@ -334,7 +417,6 @@ export default function FormAnalyticsPage() {
             )}
           </CardContent>
         </Card>
-
         <Card className="bg-neutral-50 border-0">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-[#717171] flex items-center gap-2">
@@ -353,9 +435,85 @@ export default function FormAnalyticsPage() {
               </div>
             )}
           </CardContent>
-        </Card>
+        </Card>{" "}
       </div>
+      {/* Simple Response Summary */}
+      {responses && responses.length > 0 && (
+        <Card className="mb-8 bg-neutral-50 border-0">
+          <CardHeader>
+            <CardTitle>Response Summary</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="text-sm text-[#717171] mb-4">
+                A summary of all form submissions showing submission IDs and
+                response data.
+              </div>
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {responses.map((response) => (
+                  <div key={response.id} className="rounded-2xl p-4 bg-white">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-[#2D2D2D]">
+                          Submission ID:
+                        </span>
+                        <code className="text-xs bg-gray-100 px-2 py-1 rounded font-mono">
+                          {response.id}
+                        </code>
+                      </div>
+                      <span className="text-xs text-[#717171]">
+                        {format(
+                          new Date(response.submitted_at),
+                          "MMM dd, yyyy HH:mm"
+                        )}
+                      </span>
+                    </div>
 
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-medium text-[#2D2D2D] mb-2">
+                        Response Data:
+                      </h4>
+                      {Object.keys(response.response_data).length > 0 ? (
+                        <div className="space-y-2">
+                          {Object.entries(response.response_data).map(
+                            ([key, value]) => (
+                              <div
+                                key={key}
+                                className="flex flex-col sm:flex-row sm:items-start gap-2 text-sm"
+                              >
+                                <span className="font-medium text-[#2D2D2D] min-w-0 sm:min-w-[150px]">
+                                  {key}:
+                                </span>
+                                <span className="text-[#717171] break-words flex-1">
+                                  {typeof value === "object"
+                                    ? JSON.stringify(value, null, 2)
+                                    : String(value) || "(empty)"}
+                                </span>
+                              </div>
+                            )
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-[#717171] italic">
+                          No response data
+                        </p>
+                      )}
+                    </div>
+
+                    {response.respondent_email && (
+                      <div className="mt-3 pt-3 border-t">
+                        <span className="text-xs text-[#717171]">
+                          Submitted by: {response.respondent_email}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
       {/* Submissions Table */}
       <Card className="mb-8 bg-neutral-50 border-0">
         <CardHeader>
@@ -366,74 +524,254 @@ export default function FormAnalyticsPage() {
                 {filteredAndSortedResponses?.length || 0} of{" "}
                 {responses?.length || 0}
               </Badge>
-            </div>
-
+            </div>{" "}
             {responses && responses.length > 0 && (
-              <div className="flex flex-col sm:flex-row gap-3">
-                <div className="relative flex-1 min-w-0">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-[#717171]" />
-                  <Input
-                    placeholder="Search submissions..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-8 w-full shadow-none"
-                  />
+              <div className="space-y-3">
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <div className="relative flex-1 min-w-0">
+                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-[#717171]" />
+                    <Input
+                      placeholder="Search submissions..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-8 w-full shadow-none"
+                    />
+                  </div>
+
+                  {/* Date Range Filter */}
+                  <div className="flex gap-2">
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="default"
+                          className="gap-2 w-full sm:w-auto justify-start"
+                        >
+                          <CalendarIcon className="w-4 h-4" />
+                          {dateFrom ? format(dateFrom, "MMM dd") : "From"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        {" "}
+                        <CalendarComponent
+                          mode="single"
+                          selected={dateFrom}
+                          onSelect={setDateFrom}
+                          disabled={(date) => date > new Date()}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="default"
+                          className="gap-2 w-full sm:w-auto justify-start"
+                        >
+                          <CalendarIcon className="w-4 h-4" />
+                          {dateTo ? format(dateTo, "MMM dd") : "To"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        {" "}
+                        <CalendarComponent
+                          mode="single"
+                          selected={dateTo}
+                          onSelect={setDateTo}
+                          disabled={(date) =>
+                            date > new Date() ||
+                            Boolean(dateFrom && date < dateFrom)
+                          }
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  {/* Device Filter */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="default"
+                        className="gap-2 w-full sm:w-auto"
+                      >
+                        {deviceFilter === "Mobile" && (
+                          <Smartphone className="w-4 h-4" />
+                        )}
+                        {deviceFilter === "Desktop" && (
+                          <Monitor className="w-4 h-4" />
+                        )}
+                        {deviceFilter === "Tablet" && (
+                          <Tablet className="w-4 h-4" />
+                        )}
+                        {deviceFilter === "All" && (
+                          <Filter className="w-4 h-4" />
+                        )}
+                        {deviceFilter === "Unknown" && (
+                          <Filter className="w-4 h-4" />
+                        )}
+                        {deviceFilter === "All" ? "All Devices" : deviceFilter}
+                        <ChevronDown className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => setDeviceFilter("All")}>
+                        <Filter className="w-4 h-4 mr-2 " />
+                        All Devices
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setDeviceFilter("Mobile")}
+                      >
+                        <Smartphone className="w-4 h-4 mr-2" />
+                        Mobile
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setDeviceFilter("Desktop")}
+                      >
+                        <Monitor className="w-4 h-4 mr-2" />
+                        Desktop
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setDeviceFilter("Tablet")}
+                      >
+                        <Tablet className="w-4 h-4 mr-2" />
+                        Tablet
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setDeviceFilter("Unknown")}
+                      >
+                        <Filter className="w-4 h-4 mr-2" />
+                        Unknown
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
+                  {/* Sort Dropdown */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="default"
+                        className="gap-2 w-full sm:w-auto"
+                      >
+                        <Filter className="w-4 h-4" />
+                        Sort
+                        <ChevronDown className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setSortBy("date");
+                          setSortOrder("desc");
+                        }}
+                      >
+                        Latest First
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setSortBy("date");
+                          setSortOrder("asc");
+                        }}
+                      >
+                        Oldest First
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setSortBy("email");
+                          setSortOrder("asc");
+                        }}
+                      >
+                        Email A-Z
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setSortBy("completion_time");
+                          setSortOrder("asc");
+                        }}
+                      >
+                        Fastest First
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setSortBy("completion_time");
+                          setSortOrder("desc");
+                        }}
+                      >
+                        Slowest First
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
+
+                {/* Active Filters Display */}
+                {hasActiveFilters && (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-sm text-[#717171]">
+                      Active filters:
+                    </span>
+
+                    {searchQuery && (
+                      <Badge variant="secondary" className="gap-1">
+                        Search: {searchQuery}
+                        <button
+                          onClick={() => setSearchQuery("")}
+                          className="ml-1 hover:bg-gray-300 rounded-full p-0.5"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </Badge>
+                    )}
+
+                    {dateFrom && (
+                      <Badge variant="secondary" className="gap-1">
+                        From: {format(dateFrom, "MMM dd")}
+                        <button
+                          onClick={() => setDateFrom(undefined)}
+                          className="ml-1 hover:bg-gray-300 rounded-full p-0.5"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </Badge>
+                    )}
+
+                    {dateTo && (
+                      <Badge variant="secondary" className="gap-1">
+                        To: {format(dateTo, "MMM dd")}
+                        <button
+                          onClick={() => setDateTo(undefined)}
+                          className="ml-1 hover:bg-gray-300 rounded-full p-0.5"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </Badge>
+                    )}
+
+                    {deviceFilter !== "All" && (
+                      <Badge variant="secondary" className="gap-1">
+                        Device: {deviceFilter}
+                        <button
+                          onClick={() => setDeviceFilter("All")}
+                          className="ml-1 hover:bg-gray-300 rounded-full p-0.5"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </Badge>
+                    )}
+
                     <Button
-                      variant="outline"
-                      size="default"
-                      className="gap-2 w-full sm:w-auto"
+                      variant="ghost"
+                      size="sm"
+                      onClick={clearAllFilters}
+                      className="text-[#717171] hover:text-[#2D2D2D] p-1 h-auto"
                     >
-                      <Filter className="w-4 h-4" />
-                      Sort
-                      <ChevronDown className="w-4 h-4" />
+                      Clear all
                     </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setSortBy("date");
-                        setSortOrder("desc");
-                      }}
-                    >
-                      Latest First
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setSortBy("date");
-                        setSortOrder("asc");
-                      }}
-                    >
-                      Oldest First
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setSortBy("email");
-                        setSortOrder("asc");
-                      }}
-                    >
-                      Email A-Z
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setSortBy("completion_time");
-                        setSortOrder("asc");
-                      }}
-                    >
-                      Fastest First
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setSortBy("completion_time");
-                        setSortOrder("desc");
-                      }}
-                    >
-                      Slowest First
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -453,13 +791,14 @@ export default function FormAnalyticsPage() {
             filteredAndSortedResponses.length > 0 ? (
             <div className="overflow-x-auto">
               <Table>
+                {" "}
                 <TableHeader>
                   <TableRow>
                     <TableHead className="min-w-[120px]">
                       Submission ID
                     </TableHead>
                     <TableHead className="min-w-[100px]">Submitted</TableHead>
-                    <TableHead className="min-w-[120px]">Email</TableHead>
+                    <TableHead className="min-w-[80px]">Device</TableHead>
                     <TableHead className="min-w-[100px]">
                       Completion Time
                     </TableHead>
@@ -495,17 +834,36 @@ export default function FormAnalyticsPage() {
                             {format(new Date(response.submitted_at), "HH:mm")}
                           </span>
                         </div>
-                      </TableCell>
+                      </TableCell>{" "}
                       <TableCell>
-                        {response.respondent_email ? (
-                          <span className="text-sm break-all">
-                            {response.respondent_email}
+                        <div className="flex items-center gap-1">
+                          {(() => {
+                            const deviceType = getDeviceType(
+                              response.user_agent || ""
+                            );
+                            switch (deviceType) {
+                              case "Mobile":
+                                return (
+                                  <Smartphone className="w-4 h-4 text-blue-600" />
+                                );
+                              case "Desktop":
+                                return (
+                                  <Monitor className="w-4 h-4 text-green-600" />
+                                );
+                              case "Tablet":
+                                return (
+                                  <Tablet className="w-4 h-4 text-purple-600" />
+                                );
+                              default:
+                                return (
+                                  <Filter className="w-4 h-4 text-gray-400" />
+                                );
+                            }
+                          })()}
+                          <span className="text-sm">
+                            {getDeviceType(response.user_agent || "")}
                           </span>
-                        ) : (
-                          <span className="text-[#717171] italic">
-                            Anonymous
-                          </span>
-                        )}
+                        </div>
                       </TableCell>
                       <TableCell>
                         {response.completion_time ? (
@@ -623,7 +981,6 @@ export default function FormAnalyticsPage() {
           )}
         </CardContent>
       </Card>
-
       {/* Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
         <Card className="bg-neutral-50 border-0">
@@ -762,7 +1119,6 @@ export default function FormAnalyticsPage() {
           </CardContent>
         </Card>
       </div>
-
       {/* Form Details */}
       <Card className="mt-8 bg-neutral-50 border-0">
         <CardHeader>

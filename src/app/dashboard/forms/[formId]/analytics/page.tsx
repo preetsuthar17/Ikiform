@@ -791,7 +791,6 @@ export default function FormAnalyticsPage() {
             filteredAndSortedResponses.length > 0 ? (
             <div className="overflow-x-auto">
               <Table>
-                {" "}
                 <TableHeader>
                   <TableRow>
                     <TableHead className="min-w-[120px]">
@@ -834,7 +833,7 @@ export default function FormAnalyticsPage() {
                             {format(new Date(response.submitted_at), "HH:mm")}
                           </span>
                         </div>
-                      </TableCell>{" "}
+                      </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
                           {(() => {

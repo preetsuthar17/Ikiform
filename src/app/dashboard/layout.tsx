@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { DM_Sans, Inter, JetBrains_Mono } from "next/font/google";
-
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 import "../../app/globals.css";
 
 import { Toaster } from "react-hot-toast";
@@ -110,11 +111,22 @@ export const metadata: Metadata = {
   classification: "Business Software",
 };
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+
+  if (error || !user) {
+    redirect("/auth/login");
+  }
+
   return (
     <html lang="en">
       <body

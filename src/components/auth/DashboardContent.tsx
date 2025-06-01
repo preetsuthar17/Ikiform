@@ -112,16 +112,12 @@ export default function DashboardContent({ user }: DashboardContentProps) {
   };
 
   const handleSignOut = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
 
-      toast.success("Signed out successfully");
-      router.push("/");
-      router.refresh();
-    } catch (error) {
-      console.error("Error signing out:", error);
-    }
+    toast.success("Signed out successfully");
+    router.push("/");
+    router.refresh();
   };
 
   // Extract user data from different OAuth providers

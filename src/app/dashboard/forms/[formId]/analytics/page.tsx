@@ -64,7 +64,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { DayPicker, getDefaultClassNames } from "react-day-picker";
+import "react-day-picker/dist/style.css";
 
 // Utility function to detect device type from user agent
 const getDeviceType = (
@@ -270,6 +271,7 @@ export default function FormAnalyticsPage() {
   }
 
   const loading = analyticsLoading || responsesLoading;
+  const defaultClassNames = getDefaultClassNames();
 
   // Premium gate for analytics
   if (!hasFeature("ADVANCED_ANALYTICS")) {
@@ -534,7 +536,7 @@ export default function FormAnalyticsPage() {
                       placeholder="Search submissions..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-8 w-full shadow-none"
+                      className="pl-8 w-full shadow-none bg-white"
                     />
                   </div>
 
@@ -550,15 +552,15 @@ export default function FormAnalyticsPage() {
                           <CalendarIcon className="w-4 h-4" />
                           {dateFrom ? format(dateFrom, "MMM dd") : "From"}
                         </Button>
-                      </PopoverTrigger>
+                      </PopoverTrigger>{" "}
                       <PopoverContent className="w-auto p-0" align="start">
-                        {" "}
-                        <CalendarComponent
+                        <DayPicker
                           mode="single"
                           selected={dateFrom}
                           onSelect={setDateFrom}
                           disabled={(date) => date > new Date()}
-                          initialFocus
+                          showOutsideDays
+                          className="p-3 grayscale-100 rounded-xl border-0 shadow-none text-sm "
                         />
                       </PopoverContent>
                     </Popover>
@@ -573,10 +575,9 @@ export default function FormAnalyticsPage() {
                           <CalendarIcon className="w-4 h-4" />
                           {dateTo ? format(dateTo, "MMM dd") : "To"}
                         </Button>
-                      </PopoverTrigger>
+                      </PopoverTrigger>{" "}
                       <PopoverContent className="w-auto p-0" align="start">
-                        {" "}
-                        <CalendarComponent
+                        <DayPicker
                           mode="single"
                           selected={dateTo}
                           onSelect={setDateTo}
@@ -584,7 +585,8 @@ export default function FormAnalyticsPage() {
                             date > new Date() ||
                             Boolean(dateFrom && date < dateFrom)
                           }
-                          initialFocus
+                          showOutsideDays
+                          className="p-3 grayscale-100 rounded-xl border-0 shadow-none text-sm "
                         />
                       </PopoverContent>
                     </Popover>

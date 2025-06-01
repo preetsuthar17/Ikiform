@@ -52,7 +52,7 @@ export class AnalyticsService {
    */
   static async getFormAnalytics(
     supabase: SupabaseClient<Database>,
-    formId: string
+    formId: string,
   ): Promise<FormAnalytics | null> {
     try {
       const { data, error } = await supabase
@@ -90,7 +90,7 @@ export class AnalyticsService {
     supabase: SupabaseClient<Database>,
     formId: string,
     limit?: number,
-    offset?: number
+    offset?: number,
   ): Promise<FormSubmission[]> {
     try {
       let query = supabase
@@ -108,7 +108,7 @@ export class AnalyticsService {
             file_path,
             uploaded_at
           )
-        `
+        `,
         )
         .eq("form_id", formId)
         .order("submitted_at", { ascending: false });
@@ -148,7 +148,7 @@ export class AnalyticsService {
    */
   static async getAnalyticsOverview(
     supabase: SupabaseClient<Database>,
-    userId: string
+    userId: string,
   ): Promise<AnalyticsOverview> {
     try {
       // Get user's forms with analytics
@@ -163,7 +163,7 @@ export class AnalyticsService {
             submissions,
             conversion_rate
           )
-        `
+        `,
         )
         .eq("user_id", userId);
 
@@ -178,7 +178,8 @@ export class AnalyticsService {
       let totalSubmissions = 0;
       let totalViews = 0;
       let totalConversionRate = 0;
-      let formsWithAnalytics = 0;      const popularForms = forms
+      let formsWithAnalytics = 0;
+      const popularForms = forms
         .map((form: any) => {
           const analytics = form.form_analytics?.[0];
           const views = analytics?.views || 0;
@@ -224,7 +225,7 @@ export class AnalyticsService {
    */
   static async exportSubmissionsAsCSV(
     supabase: SupabaseClient<Database>,
-    formId: string
+    formId: string,
   ): Promise<string> {
     try {
       const submissions = await this.getFormSubmissions(supabase, formId);
@@ -285,7 +286,7 @@ export class AnalyticsService {
       // Combine headers and rows
       const csvContent = [headers, ...rows]
         .map((row) =>
-          row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")
+          row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","),
         )
         .join("\n");
 
@@ -302,7 +303,7 @@ export class AnalyticsService {
     supabase: SupabaseClient<Database>,
     formId: string,
     startDate: string,
-    endDate: string
+    endDate: string,
   ): Promise<Array<{ date: string; count: number }>> {
     try {
       const { data, error } = await supabase
@@ -311,7 +312,8 @@ export class AnalyticsService {
         .eq("form_id", formId)
         .gte("submitted_at", startDate)
         .lte("submitted_at", endDate)
-        .order("submitted_at", { ascending: true });      if (error) {
+        .order("submitted_at", { ascending: true });
+      if (error) {
         throw new Error(`Failed to fetch submission stats: ${error.message}`);
       }
 
@@ -337,7 +339,7 @@ export class AnalyticsService {
    */
   static async deleteFormAnalytics(
     supabase: SupabaseClient<Database>,
-    formId: string
+    formId: string,
   ): Promise<void> {
     try {
       const { error } = await supabase

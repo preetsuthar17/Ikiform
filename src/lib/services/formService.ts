@@ -68,7 +68,7 @@ export class FormService {
     formData: {
       form: Partial<Form>;
       fields?: FormField[];
-    }
+    },
   ): Promise<{ form: Form }> {
     const response = await fetch(`${this.baseUrl}/api/forms/${formId}`, {
       method: "PUT",
@@ -114,7 +114,7 @@ export class FormService {
 
   async updateFormFields(
     formId: string,
-    fields: FormField[]
+    fields: FormField[],
   ): Promise<{ fields: FormField[] }> {
     const response = await fetch(`${this.baseUrl}/api/forms/${formId}/fields`, {
       method: "PUT",
@@ -134,7 +134,7 @@ export class FormService {
 
   async addFormField(
     formId: string,
-    field: FormField
+    field: FormField,
   ): Promise<{ field: FormField }> {
     const response = await fetch(`${this.baseUrl}/api/forms/${formId}/fields`, {
       method: "POST",
@@ -155,7 +155,7 @@ export class FormService {
   async updateFormField(
     formId: string,
     fieldId: string,
-    fieldData: Partial<FormField>
+    fieldData: Partial<FormField>,
   ): Promise<{ field: FormField }> {
     const response = await fetch(
       `${this.baseUrl}/api/forms/${formId}/fields/${fieldId}`,
@@ -166,7 +166,7 @@ export class FormService {
         },
         credentials: "include",
         body: JSON.stringify(fieldData),
-      }
+      },
     );
 
     if (!response.ok) {
@@ -178,14 +178,14 @@ export class FormService {
 
   async deleteFormField(
     formId: string,
-    fieldId: string
+    fieldId: string,
   ): Promise<{ message: string }> {
     const response = await fetch(
       `${this.baseUrl}/api/forms/${formId}/fields/${fieldId}`,
       {
         method: "DELETE",
         credentials: "include",
-      }
+      },
     );
 
     if (!response.ok) {
@@ -197,7 +197,7 @@ export class FormService {
   // Public form access
   async getPublicForm(shareUrl: string): Promise<{ form: PublicForm }> {
     const response = await fetch(
-      `${this.baseUrl}/api/forms/public/${shareUrl}`
+      `${this.baseUrl}/api/forms/public/${shareUrl}`,
     );
 
     if (!response.ok) {
@@ -213,7 +213,7 @@ export class FormService {
     submissionData: {
       responses: { [fieldId: string]: any };
       metadata?: any;
-    }
+    },
   ): Promise<{ message: string; responseId: string }> {
     const response = await fetch(`${this.baseUrl}/api/forms/${formId}/submit`, {
       method: "POST",
@@ -235,7 +235,7 @@ export class FormService {
     submissionData: {
       responses: { [fieldId: string]: any };
       metadata?: any;
-    }
+    },
   ): Promise<{ message: string; responseId: string }> {
     const response = await fetch(
       `${this.baseUrl}/api/forms/public/${shareUrl}`,
@@ -245,7 +245,7 @@ export class FormService {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(submissionData),
-      }
+      },
     );
 
     if (!response.ok) {
@@ -256,13 +256,13 @@ export class FormService {
   }
   // Response management
   async getFormResponses(
-    formId: string
+    formId: string,
   ): Promise<{ responses: FormResponse[] }> {
     const response = await fetch(
       `${this.baseUrl}/api/forms/${formId}/submissions`,
       {
         credentials: "include",
-      }
+      },
     );
 
     if (!response.ok) {
@@ -279,7 +279,7 @@ export class FormService {
       `${this.baseUrl}/api/forms/${formId}/analytics`,
       {
         credentials: "include",
-      }
+      },
     );
 
     if (!response.ok) {
@@ -292,7 +292,7 @@ export class FormService {
   async trackAnalyticsEvent(
     formId: string,
     eventType: string,
-    metadata?: any
+    metadata?: any,
   ): Promise<{ message: string }> {
     const response = await fetch(
       `${this.baseUrl}/api/forms/${formId}/analytics`,
@@ -306,7 +306,7 @@ export class FormService {
           event_type: eventType,
           metadata,
         }),
-      }
+      },
     );
 
     if (!response.ok) {
@@ -319,7 +319,7 @@ export class FormService {
         eventType,
       });
       throw new Error(
-        `Failed to track analytics event: ${response.status} ${response.statusText}`
+        `Failed to track analytics event: ${response.status} ${response.statusText}`,
       );
     }
 
@@ -329,13 +329,13 @@ export class FormService {
   // Export
   async exportFormData(
     formId: string,
-    format: "csv" | "json" = "csv"
+    format: "csv" | "json" = "csv",
   ): Promise<Blob> {
     const response = await fetch(
       `${this.baseUrl}/api/forms/${formId}/export?format=${format}`,
       {
         credentials: "include",
-      }
+      },
     );
 
     if (!response.ok) {
@@ -350,7 +350,7 @@ export class FormService {
     options: {
       format: "csv" | "json";
       filters?: any;
-    }
+    },
   ): Promise<{ exportId: string; totalRecords: number }> {
     const response = await fetch(`${this.baseUrl}/api/forms/${formId}/export`, {
       method: "POST",

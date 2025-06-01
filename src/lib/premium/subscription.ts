@@ -12,7 +12,7 @@ export interface SubscriptionData {
 // Start a trial for a user
 export const startTrial = async (
   userId: string,
-  trialDays: number = 14
+  trialDays: number = 14,
 ): Promise<{ success: boolean; error?: string }> => {
   const supabase = createClient();
 
@@ -36,7 +36,7 @@ export const startTrial = async (
 
 // Upgrade user to premium
 export const upgradeToPremium = async (
-  subscriptionData: SubscriptionData
+  subscriptionData: SubscriptionData,
 ): Promise<{ success: boolean; error?: string }> => {
   const supabase = createClient();
 
@@ -61,7 +61,7 @@ export const upgradeToPremium = async (
 
 // Cancel premium subscription
 export const cancelPremium = async (
-  userId: string
+  userId: string,
 ): Promise<{ success: boolean; error?: string }> => {
   const supabase = createClient();
 
@@ -86,7 +86,7 @@ export const cancelPremium = async (
 export const checkFeatureAccess = async (
   userId: string,
   featureName: string,
-  requiredPlan: PremiumPlan = "pro"
+  requiredPlan: PremiumPlan = "pro",
 ): Promise<boolean> => {
   const supabase = createClient();
 
@@ -133,7 +133,7 @@ export const getUserUsage = async (userId: string) => {
         "form_id",
         (
           await supabase.from("forms").select("id").eq("user_id", userId)
-        ).data?.map((f) => f.id) || []
+        ).data?.map((f) => f.id) || [],
       );
 
     if (submissionError) {

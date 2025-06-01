@@ -125,7 +125,7 @@ export const PREMIUM_FEATURES: Record<string, PremiumFeature> = {
 // Utility functions to check plan capabilities
 export const canUserAccessFeature = (
   userPlan: PremiumPlan,
-  requiredPlan: PremiumPlan
+  requiredPlan: PremiumPlan,
 ): boolean => {
   const planHierarchy: Record<PremiumPlan, number> = {
     free: 0,
@@ -248,7 +248,7 @@ export class PremiumChecker {
   }
   checkUsageLimit(
     type: keyof typeof PLAN_LIMITS.free,
-    currentUsage: number
+    currentUsage: number,
   ): boolean {
     // All limits are now unlimited - always return true
     return true;
@@ -290,7 +290,7 @@ export const usePremium = () => {
     usageLimits: premiumChecker.getUsageLimits(),
     checkUsageLimit: (
       type: keyof typeof PLAN_LIMITS.free,
-      currentUsage: number
+      currentUsage: number,
     ) => premiumChecker.checkUsageLimit(type, currentUsage),
     // Feature status helpers
     isFeatureAvailable: (featureId: string) => isFeatureAvailable(featureId),
@@ -304,7 +304,7 @@ export const usePremium = () => {
 
 // Server-side premium checker for API routes
 export const checkPremiumServer = async (
-  userId: string
+  userId: string,
 ): Promise<PremiumStatus> => {
   const supabase = createClient();
 
@@ -351,7 +351,7 @@ export const requiresPremium = (featureId: string) => {
   return function (
     target: any,
     propertyName: string,
-    descriptor: PropertyDescriptor
+    descriptor: PropertyDescriptor,
   ) {
     const method = descriptor.value;
 
@@ -366,7 +366,7 @@ export const requiresPremium = (featureId: string) => {
 export const withPremiumCheck = <T extends (...args: any[]) => any>(
   featureId: string,
   fn: T,
-  fallback?: () => any
+  fallback?: () => any,
 ): T => {
   return ((...args: any[]) => {
     // All features are now free - no restrictions
@@ -427,15 +427,15 @@ export const TRIAL_DURATION_DAYS = 14;
 // Feature categorization helpers
 export const getFeaturesByCategory = (category: string): PremiumFeature[] => {
   return Object.values(PREMIUM_FEATURES).filter(
-    (feature) => feature.category === category
+    (feature) => feature.category === category,
   );
 };
 
 export const getFeaturesByStatus = (
-  status: "available" | "coming_soon" | "beta"
+  status: "available" | "coming_soon" | "beta",
 ): PremiumFeature[] => {
   return Object.values(PREMIUM_FEATURES).filter(
-    (feature) => feature.status === status
+    (feature) => feature.status === status,
   );
 };
 
@@ -453,7 +453,7 @@ export const getBetaFeatures = (): PremiumFeature[] => {
 
 export const getAllFeatureCategories = (): string[] => {
   const categories = new Set(
-    Object.values(PREMIUM_FEATURES).map((feature) => feature.category)
+    Object.values(PREMIUM_FEATURES).map((feature) => feature.category),
   );
   return Array.from(categories).sort();
 };

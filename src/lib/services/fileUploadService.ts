@@ -21,14 +21,14 @@ export class FileUploadService {
     file: File,
     formId: string,
     fieldId: string,
-    options?: FileUploadOptions
+    options?: FileUploadOptions,
   ): Promise<UploadedFile> {
     // Validate file size
     if (options?.maxFileSize) {
       const maxSizeBytes = options.maxFileSize * 1024 * 1024;
       if (file.size > maxSizeBytes) {
         throw new Error(
-          `File size exceeds maximum allowed size of ${options.maxFileSize}MB`
+          `File size exceeds maximum allowed size of ${options.maxFileSize}MB`,
         );
       }
     }
@@ -42,12 +42,12 @@ export class FileUploadService {
         (type) =>
           type.toLowerCase() === `.${fileExtension}` ||
           type.toLowerCase() === fileExtension ||
-          mimeType.startsWith(type.toLowerCase().replace("*", ""))
+          mimeType.startsWith(type.toLowerCase().replace("*", "")),
       );
 
       if (!isAllowed) {
         throw new Error(
-          `File type not allowed. Supported types: ${options.allowedTypes.join(", ")}`
+          `File type not allowed. Supported types: ${options.allowedTypes.join(", ")}`,
         );
       }
     }
@@ -83,7 +83,7 @@ export class FileUploadService {
     files: File[],
     formId: string,
     fieldId: string,
-    options?: FileUploadOptions
+    options?: FileUploadOptions,
   ): Promise<UploadedFile[]> {
     // Validate number of files
     if (options?.maxFiles && files.length > options.maxFiles) {
@@ -91,7 +91,7 @@ export class FileUploadService {
     }
 
     const uploadPromises = files.map((file) =>
-      this.uploadFile(file, formId, fieldId, options)
+      this.uploadFile(file, formId, fieldId, options),
     );
 
     try {
@@ -108,14 +108,14 @@ export class FileUploadService {
   static async deleteFile(
     formId: string,
     fieldId: string,
-    fileName: string
+    fileName: string,
   ): Promise<void> {
     try {
       const response = await fetch(
         `/api/uploads/${formId}/${fieldId}/${fileName}`,
         {
           method: "DELETE",
-        }
+        },
       );
 
       if (!response.ok) {
@@ -132,11 +132,11 @@ export class FileUploadService {
    * Delete multiple files
    */
   static async deleteFiles(
-    files: Array<{ formId: string; fieldId: string; fileName: string }>
+    files: Array<{ formId: string; fieldId: string; fileName: string }>,
   ): Promise<void> {
     try {
       const deletePromises = files.map((file) =>
-        this.deleteFile(file.formId, file.fieldId, file.fileName)
+        this.deleteFile(file.formId, file.fieldId, file.fileName),
       );
       await Promise.all(deletePromises);
     } catch (error) {
@@ -149,7 +149,7 @@ export class FileUploadService {
    * Get file info from URL
    */
   static getFileInfoFromUrl(
-    url: string
+    url: string,
   ): { name: string; path: string } | null {
     try {
       const urlObj = new URL(url);

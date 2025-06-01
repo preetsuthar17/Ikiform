@@ -26,7 +26,7 @@ export class SubmissionService {
    * Submit a form response with file uploads
    */
   static async submitForm(
-    data: FormSubmissionData
+    data: FormSubmissionData,
   ): Promise<SubmissionResponse> {
     try {
       // Start a transaction to ensure data consistency
@@ -45,7 +45,7 @@ export class SubmissionService {
 
       if (responseError) {
         throw new Error(
-          `Failed to save form response: ${responseError.message}`
+          `Failed to save form response: ${responseError.message}`,
         );
       }
 
@@ -63,7 +63,7 @@ export class SubmissionService {
             file_size: file.size,
             mime_type: file.type,
             file_path: file.path,
-          }))
+          })),
         );
 
         if (fileUploadRecords.length > 0) {
@@ -102,7 +102,7 @@ export class SubmissionService {
    */
   private static async updateFormAnalytics(
     formId: string,
-    completionTime?: number
+    completionTime?: number,
   ): Promise<void> {
     try {
       // Use the database function to increment submissions
@@ -129,14 +129,14 @@ export class SubmissionService {
                 (existingAnalytics.average_completion_time *
                   existingAnalytics.submissions +
                   completionTime) /
-                  newSubmissions
+                  newSubmissions,
               )
             : existingAnalytics.average_completion_time;
 
           const newConversionRate =
             existingAnalytics.views > 0
               ? Number(
-                  ((newSubmissions / existingAnalytics.views) * 100).toFixed(2)
+                  ((newSubmissions / existingAnalytics.views) * 100).toFixed(2),
                 )
               : 0;
 
@@ -172,7 +172,7 @@ export class SubmissionService {
    * Get form submissions for a specific form
    */ static async getFormSubmissions(
     formId: string,
-    supabaseClient?: SupabaseClient
+    supabaseClient?: SupabaseClient,
   ) {
     try {
       // Use provided client or default to client-side client
@@ -193,7 +193,7 @@ export class SubmissionService {
             file_path,
             uploaded_at
           )
-        `
+        `,
         )
         .eq("form_id", formId)
         .order("submitted_at", { ascending: false });
@@ -206,7 +206,7 @@ export class SubmissionService {
     } catch (error) {
       console.error(
         "❌ SubmissionService: Error fetching form submissions:",
-        error
+        error,
       );
       throw error;
     }
@@ -271,7 +271,7 @@ export class SubmissionService {
           if (!response.ok) {
             console.error(
               "Analytics API fallback failed:",
-              response.statusText
+              response.statusText,
             );
           }
         } catch (apiError) {

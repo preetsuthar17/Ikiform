@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import { join } from "path";
-import { existsSync } from "fs";
-import { randomUUID } from "crypto";
+import { supabaseStorageService } from "@/lib/services/supabaseStorageService";
 
 /**
  * Handles the POST request for uploading a file.
@@ -48,7 +45,8 @@ import { randomUUID } from "crypto";
  * - Validates that the file size does not exceed 10MB.
  *
  * ### File Storage
- * - Files are stored in the `uploads/{formId}/{fieldId}` directory.
+ * - Files are stored in Supabase Storage in the 'ikiform-uploads' bucket.
+ * - Files are organized in the path: forms/{formId}/fields/{fieldId}/{fileName}
  * - A unique filename is generated using a UUID and the original file extension.
  */
 export async function POST(request: NextRequest) {
@@ -65,7 +63,7 @@ export async function POST(request: NextRequest) {
     if (!formId || !fieldId) {
       return NextResponse.json(
         { error: "Form ID and Field ID are required" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -74,59 +72,38 @@ export async function POST(request: NextRequest) {
     if (file.size > maxSize) {
       return NextResponse.json(
         { error: "File size exceeds limit" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
-    // Create upload directory if it doesn't exist
-    const uploadDir = join(process.cwd(), "uploads", formId, fieldId);
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true });
-    }
-
-    // Generate unique filename
-    const fileId = randomUUID();
-    const fileExtension = file.name.split(".").pop() || "";
-    const fileName = `${fileId}.${fileExtension}`;
-    const filePath = join(uploadDir, fileName);
-
-    // Save file
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    await writeFile(filePath, buffer);
-
-    // Return file info
-    const uploadedFile = {
-      id: fileId,
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      path: filePath,
-      url: `/api/uploads/${formId}/${fieldId}/${fileName}`,
-      uploadedAt: new Date().toISOString(),
-    };
+    // Upload file to Supabase Storage
+    const uploadedFile = await supabaseStorageService.uploadFile(
+      file,
+      formId,
+      fieldId
+    );
 
     return NextResponse.json(uploadedFile);
   } catch (error) {
     console.error("File upload error:", error);
     return NextResponse.json(
       { error: "Failed to upload file" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
 
 /**
- * Handles the DELETE request to delete a file based on the provided file path.
+ * Handles the DELETE request to delete a file from Supabase Storage.
  *
  * @param request - The incoming Next.js request object.
  * @returns A JSON response indicating the success or failure of the file deletion operation.
  *
  * @remarks
  * - The file path must be provided as a query parameter (`path`) in the request URL.
+ * - The path should be the storage path in Supabase (e.g., "forms/{formId}/fields/{fieldId}/{fileName}").
  * - If the file path is missing, a 400 status response is returned with an error message.
  * - If an error occurs during the deletion process, a 500 status response is returned with an error message.
- * - The actual file deletion logic is not implemented and should be added based on the storage solution used.
  */
 export async function DELETE(request: NextRequest) {
   try {
@@ -136,18 +113,19 @@ export async function DELETE(request: NextRequest) {
     if (!filePath) {
       return NextResponse.json(
         { error: "File path is required" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
-    // Delete file (implementation depends on storage solution)
-    // For now, just return success
+    // Delete file from Supabase Storage
+    await supabaseStorageService.deleteFile(filePath);
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("File deletion error:", error);
     return NextResponse.json(
       { error: "Failed to delete file" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

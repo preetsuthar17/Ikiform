@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { FormField } from "@/lib/types/forms";
+import { AnalyticsService } from "@/lib/services/analyticsService";
+import { SupabaseStorageService } from "@/lib/services/supabaseStorageService";
 
 /**
  * Handles the GET request for fetching a specific form along with its fields and analytics.
@@ -22,7 +24,7 @@ import { FormField } from "@/lib/types/forms";
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ formId: string }> },
+  { params }: { params: Promise<{ formId: string }> }
 ) {
   try {
     const supabase = await createClient();
@@ -43,7 +45,7 @@ export async function GET(
         *,
         form_fields(*),
         form_analytics(*)
-      `,
+      `
       )
       .eq("id", formId)
       .eq("user_id", user.id)
@@ -67,7 +69,7 @@ export async function GET(
     console.error("Error fetching form:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
@@ -125,7 +127,7 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ formId: string }> },
+  { params }: { params: Promise<{ formId: string }> }
 ) {
   try {
     const supabase = await createClient();
@@ -223,7 +225,7 @@ export async function PUT(
             field_order: index,
             validation_rules: field.validation_rules || {},
             conditional_logic: field.conditional_logic || {},
-          }),
+          })
         );
 
         const { error: fieldsError } = await supabase
@@ -241,13 +243,13 @@ export async function PUT(
     console.error("Error updating form:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
 
 /**
- * Handles the HTTP DELETE request to delete a form.
+ * Handles the HTTP DELETE request to delete a form and all associated data.
  *
  * @param request - The incoming HTTP request object.
  * @param params - The route parameters containing the `formId`.
@@ -257,20 +259,24 @@ export async function PUT(
  * ### Behavior:
  * - Authenticates the user using Supabase.
  * - Verifies the ownership of the form by the authenticated user.
- * - Deletes the form from the database if the user owns it.
+ * - Deletes all uploaded files from Supabase storage.
+ * - Deletes all associated database records (file uploads, form responses, analytics).
+ * - Finally deletes the form itself.
  *
  * ### Possible Responses:
  * - `401 Unauthorized`: If the user is not authenticated.
+ * - `404 Not Found`: If the form is not found or user doesn't own it.
  * - `500 Internal Server Error`: If an error occurs during the deletion process.
- * - `200 OK`: If the form is successfully deleted, returns a success message.
+ * - `200 OK`: If the form and all associated data are successfully deleted.
  *
  * ### Notes:
- * - The `formId` parameter is extracted from the route parameters.
- * - Errors during the deletion process are logged and returned as a response.
+ * - The deletion process is comprehensive and removes all traces of the form.
+ * - Files are deleted from storage before database records for data consistency.
+ * - Errors during file deletion are logged but don't prevent form deletion.
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ formId: string }> },
+  { params }: { params: Promise<{ formId: string }> }
 ) {
   try {
     const supabase = await createClient();
@@ -285,7 +291,95 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Verify form ownership and delete
+    // First, verify form ownership
+    const { data: form, error: formCheckError } = await supabase
+      .from("forms")
+      .select("id")
+      .eq("id", formId)
+      .eq("user_id", user.id)
+      .single();
+
+    if (formCheckError || !form) {
+      return NextResponse.json({ error: "Form not found" }, { status: 404 });
+    }
+
+    // Get all file uploads associated with this form to delete from storage
+    const { data: fileUploads, error: fileQueryError } = await supabase
+      .from("file_uploads")
+      .select("file_path, form_id, field_id, file_name")
+      .eq("form_id", formId);
+
+    if (fileQueryError) {
+      console.error("Error querying file uploads:", fileQueryError);
+      // Continue with form deletion even if file query fails
+    }
+
+    // Delete files from Supabase storage
+    if (fileUploads && fileUploads.length > 0) {
+      const storageService = new SupabaseStorageService();
+
+      for (const fileUpload of fileUploads) {
+        try {
+          // Use the stored file_path which includes the full storage path
+          if (fileUpload.file_path) {
+            await storageService.deleteFile(fileUpload.file_path);
+          } else {
+            // Fallback to constructing path if file_path is not available
+            const storagePath = `forms/${fileUpload.form_id}/fields/${fileUpload.field_id}/${fileUpload.file_name}`;
+            await storageService.deleteFile(storagePath);
+          }
+        } catch (error) {
+          console.error(
+            `Failed to delete file from storage: ${fileUpload.file_name}`,
+            error
+          );
+          // Continue with other deletions even if one file fails
+        }
+      }
+    }
+
+    // Delete file upload records from database
+    const { error: fileDeleteError } = await supabase
+      .from("file_uploads")
+      .delete()
+      .eq("form_id", formId);
+
+    if (fileDeleteError) {
+      console.error("Error deleting file upload records:", fileDeleteError);
+      // Continue with form deletion
+    }
+
+    // Delete form responses
+    const { error: responsesDeleteError } = await supabase
+      .from("form_responses")
+      .delete()
+      .eq("form_id", formId);
+
+    if (responsesDeleteError) {
+      console.error("Error deleting form responses:", responsesDeleteError);
+      // Continue with form deletion
+    }
+
+    // Delete form analytics
+    try {
+      await AnalyticsService.deleteFormAnalytics(supabase, formId);
+    } catch (error) {
+      console.error("Error deleting form analytics:", error);
+      // Continue with form deletion
+    }
+
+    // Delete form fields (cascade should handle this, but explicit deletion for safety)
+    const { error: fieldsDeleteError } = await supabase
+      .from("form_fields")
+      .delete()
+      .eq("form_id", formId);
+
+    if (fieldsDeleteError) {
+      console.error("Error deleting form fields:", fieldsDeleteError);
+      // Continue with form deletion
+    }
+
+    // Finally, delete the form itself
     const { error: deleteError } = await supabase
       .from("forms")
       .delete()
@@ -296,12 +390,15 @@ export async function DELETE(
       return NextResponse.json({ error: deleteError.message }, { status: 500 });
     }
 
-    return NextResponse.json({ message: "Form deleted successfully" });
+    return NextResponse.json({
+      message: "Form and all associated data deleted successfully",
+      deletedFiles: fileUploads?.length || 0,
+    });
   } catch (error) {
     console.error("Error deleting form:", error);
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

@@ -1,3 +1,8 @@
+import {
+  ImageCompression,
+  CompressionOptions,
+} from "@/lib/utils/imageCompression";
+
 export interface UploadedFile {
   id: string;
   name: string;
@@ -11,6 +16,8 @@ export interface FileUploadOptions {
   maxFileSize?: number; // in MB
   allowedTypes?: string[];
   maxFiles?: number;
+  compressImages?: boolean; // Enable image compression
+  compressionOptions?: CompressionOptions; // Image compression settings
 }
 
 export class FileUploadService {
@@ -21,40 +28,66 @@ export class FileUploadService {
     file: File,
     formId: string,
     fieldId: string,
-    options?: FileUploadOptions,
+    options?: FileUploadOptions
   ): Promise<UploadedFile> {
-    // Validate file size
+    let fileToUpload = file;
+
+    // Apply image compression if enabled and file is an image
+    if (options?.compressImages && ImageCompression.shouldCompress(file)) {
+      try {
+        const compressionResult = await ImageCompression.compressImage(
+          file,
+          options.compressionOptions || {
+            quality: 0.9,
+            maxWidth: 1920,
+            maxHeight: 1080,
+          }
+        );
+        fileToUpload = compressionResult.file;
+        console.log(
+          `Image compressed: ${file.name}, Original: ${(file.size / 1024).toFixed(1)}KB, Compressed: ${(compressionResult.compressedSize / 1024).toFixed(1)}KB (${compressionResult.compressionRatio.toFixed(1)}% reduction)`
+        );
+      } catch (error) {
+        console.warn(
+          "Image compression failed, uploading original file:",
+          error
+        );
+        // Continue with original file if compression fails
+      }
+    }
+
+    // Validate file size (using the potentially compressed file)
     if (options?.maxFileSize) {
       const maxSizeBytes = options.maxFileSize * 1024 * 1024;
-      if (file.size > maxSizeBytes) {
+      if (fileToUpload.size > maxSizeBytes) {
         throw new Error(
-          `File size exceeds maximum allowed size of ${options.maxFileSize}MB`,
+          `File size exceeds maximum allowed size of ${options.maxFileSize}MB`
         );
       }
     }
 
     // Validate file type
     if (options?.allowedTypes && options.allowedTypes.length > 0) {
-      const fileExtension = file.name.split(".").pop()?.toLowerCase();
-      const mimeType = file.type.toLowerCase();
+      const fileExtension = fileToUpload.name.split(".").pop()?.toLowerCase();
+      const mimeType = fileToUpload.type.toLowerCase();
 
       const isAllowed = options.allowedTypes.some(
         (type) =>
           type.toLowerCase() === `.${fileExtension}` ||
           type.toLowerCase() === fileExtension ||
-          mimeType.startsWith(type.toLowerCase().replace("*", "")),
+          mimeType.startsWith(type.toLowerCase().replace("*", ""))
       );
 
       if (!isAllowed) {
         throw new Error(
-          `File type not allowed. Supported types: ${options.allowedTypes.join(", ")}`,
+          `File type not allowed. Supported types: ${options.allowedTypes.join(", ")}`
         );
       }
     }
 
     // Create form data for API upload
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append("file", fileToUpload);
     formData.append("formId", formId);
     formData.append("fieldId", fieldId);
 
@@ -83,7 +116,7 @@ export class FileUploadService {
     files: File[],
     formId: string,
     fieldId: string,
-    options?: FileUploadOptions,
+    options?: FileUploadOptions
   ): Promise<UploadedFile[]> {
     // Validate number of files
     if (options?.maxFiles && files.length > options.maxFiles) {
@@ -91,7 +124,7 @@ export class FileUploadService {
     }
 
     const uploadPromises = files.map((file) =>
-      this.uploadFile(file, formId, fieldId, options),
+      this.uploadFile(file, formId, fieldId, options)
     );
 
     try {
@@ -103,19 +136,15 @@ export class FileUploadService {
     }
   }
   /**
-   * Delete a file from local storage via API
+   * Delete a file from Supabase Storage via API
    */
-  static async deleteFile(
-    formId: string,
-    fieldId: string,
-    fileName: string,
-  ): Promise<void> {
+  static async deleteFile(storagePath: string): Promise<void> {
     try {
       const response = await fetch(
-        `/api/uploads/${formId}/${fieldId}/${fileName}`,
+        `/api/uploads?path=${encodeURIComponent(storagePath)}`,
         {
           method: "DELETE",
-        },
+        }
       );
 
       if (!response.ok) {
@@ -131,13 +160,9 @@ export class FileUploadService {
   /**
    * Delete multiple files
    */
-  static async deleteFiles(
-    files: Array<{ formId: string; fieldId: string; fileName: string }>,
-  ): Promise<void> {
+  static async deleteFiles(storagePaths: string[]): Promise<void> {
     try {
-      const deletePromises = files.map((file) =>
-        this.deleteFile(file.formId, file.fieldId, file.fileName),
-      );
+      const deletePromises = storagePaths.map((path) => this.deleteFile(path));
       await Promise.all(deletePromises);
     } catch (error) {
       console.error("Files deletion error:", error);
@@ -149,7 +174,7 @@ export class FileUploadService {
    * Get file info from URL
    */
   static getFileInfoFromUrl(
-    url: string,
+    url: string
   ): { name: string; path: string } | null {
     try {
       const urlObj = new URL(url);

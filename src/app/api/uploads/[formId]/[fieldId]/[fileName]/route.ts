@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { readFile } from "fs/promises";
-import { join } from "path";
-import { existsSync } from "fs";
+import { supabaseStorageService } from "@/lib/services/supabaseStorageService";
 
 /**
- * Handles the GET request to serve a file from the server's file system.
+ * Handles the GET request to serve a file from Supabase Storage.
  *
  * @param request - The incoming Next.js request object.
  * @param context - An object containing route parameters.
@@ -22,18 +20,19 @@ export async function GET(
   request: NextRequest,
   {
     params,
-  }: { params: Promise<{ formId: string; fieldId: string; fileName: string }> },
+  }: { params: Promise<{ formId: string; fieldId: string; fileName: string }> }
 ) {
   try {
     const { formId, fieldId, fileName } = await params;
 
-    const filePath = join(process.cwd(), "uploads", formId, fieldId, fileName);
+    // Construct the storage path
+    const storagePath = `forms/${formId}/fields/${fieldId}/${fileName}`;
 
-    if (!existsSync(filePath)) {
-      return NextResponse.json({ error: "File not found" }, { status: 404 });
-    }
+    // Download file from Supabase Storage
+    const fileBlob = await supabaseStorageService.downloadFile(storagePath);
 
-    const fileBuffer = await readFile(filePath);
+    // Convert blob to array buffer
+    const arrayBuffer = await fileBlob.arrayBuffer();
 
     // Determine content type based on file extension
     const extension = fileName.split(".").pop()?.toLowerCase() || "";
@@ -53,7 +52,7 @@ export async function GET(
 
     const contentType = contentTypes[extension] || "application/octet-stream";
 
-    return new NextResponse(new Uint8Array(fileBuffer), {
+    return new NextResponse(new Uint8Array(arrayBuffer), {
       headers: {
         "Content-Type": contentType,
         "Content-Disposition": `inline; filename="${fileName}"`,
@@ -61,9 +60,15 @@ export async function GET(
     });
   } catch (error) {
     console.error("File serving error:", error);
+
+    // Check if it's a not found error
+    if (error instanceof Error && error.message.includes("not found")) {
+      return NextResponse.json({ error: "File not found" }, { status: 404 });
+    }
+
     return NextResponse.json(
       { error: "Failed to serve file" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

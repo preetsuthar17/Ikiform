@@ -11,6 +11,8 @@ import {
   Clock,
   MapPin,
   Monitor,
+  FileText,
+  Image,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -22,6 +24,7 @@ import { toast } from "react-hot-toast";
 import { useForm } from "@/lib/hooks/useForms";
 import { formService } from "@/lib/services/formService";
 import { FormResponse, FormField } from "@/lib/types/forms";
+import { FileAnalyticsFormatter } from "@/lib/utils/fileAnalyticsFormatter";
 
 export default function SubmissionDetailsPage() {
   const params = useParams();
@@ -106,112 +109,304 @@ export default function SubmissionDetailsPage() {
       toast.success("Submission exported successfully!");
     }
   };
-
   const getFieldLabel = (fieldId: string): string => {
-    const field = form?.form_fields?.find((f: FormField) => f.id === fieldId);
-    return field?.label || fieldId;
-  };
-  const getFieldType = (fieldId: string): string => {
-    const field = form?.form_fields?.find((f: FormField) => f.id === fieldId);
-    return field?.field_type || "text";
-  };
-  const formatFieldValue = (value: any, fieldType: string): React.ReactNode => {
-    if (value === null || value === undefined) {
-      return <span className="text-[#717171] italic">No response</span>;
-    } // Handle objects (including file uploads, complex selections, etc.)
-    if (typeof value === "object") {
-      if (Array.isArray(value)) {
-        if (value.length === 0) {
-          return <span className="text-[#717171] italic">No selections</span>;
-        }
+    if (formLoading || !form?.form_fields) {
+      return fieldId;
+    }
 
-        // Handle file upload arrays (for file field types)
-        if (
-          fieldType === "file" &&
-          value.length > 0 &&
-          value[0]?.name &&
-          value[0]?.size
-        ) {
-          return (
-            <div className="space-y-2">
-              {value.map((file, index) => (
-                <div key={index} className="bg-gray-50 p-3 rounded border">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center">
-                      📎
-                    </div>
-                    <div>
-                      <div className="font-medium">{file.name}</div>
-                      <div className="text-xs text-[#717171]">
-                        {file.size
-                          ? `${(file.size / 1024).toFixed(1)} KB`
-                          : "Unknown size"}
-                      </div>
-                    </div>
-                  </div>
-                  {file.url && (
-                    <a
-                      href={file.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline text-sm"
-                    >
-                      View file
-                    </a>
-                  )}
-                </div>
-              ))}
-            </div>
+    // First try direct ID match
+    const directMatch = form.form_fields.find(
+      (f: FormField) => f.id === fieldId
+    );
+    if (directMatch) {
+      return directMatch.label || directMatch.name || fieldId;
+    }
+
+    // If no direct match, try to infer based on field type and response data
+    if (submission) {
+      const fieldValue = submission.response_data[fieldId];
+
+      // Try to match by field type based on the value
+      if (fieldValue && typeof fieldValue === "string") {
+        // Check if it looks like an email
+        if (fieldValue.includes("@") && fieldValue.includes(".")) {
+          const emailField = form.form_fields.find(
+            (f: FormField) => f.field_type === "email"
           );
+          if (emailField) {
+            return emailField.label || "Email";
+          }
         }
 
-        // Handle other arrays (checkboxes, multi-select, etc.)
-        return (
-          <div className="space-y-1">
-            {value.map((item, index) => (
-              <div key={index} className="flex items-center gap-2">
-                <span className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></span>
-                <span>
-                  {typeof item === "object"
-                    ? JSON.stringify(item)
-                    : String(item)}
-                </span>
-              </div>
-            ))}
-          </div>
-        );
+        // Check if it looks like a phone number
+        if (/^\+?[\d\s\-\(\)]+$/.test(fieldValue)) {
+          const phoneField = form.form_fields.find(
+            (f: FormField) => f.field_type === "phone"
+          );
+          if (phoneField) {
+            return phoneField.label || "Phone";
+          }
+        }
+
+        // Check if it looks like a URL
+        if (
+          fieldValue.startsWith("http://") ||
+          fieldValue.startsWith("https://")
+        ) {
+          const urlField = form.form_fields.find(
+            (f: FormField) => f.field_type === "url"
+          );
+          if (urlField) {
+            return urlField.label || "URL";
+          }
+        }
       }
 
-      // Handle file upload objects
-      if (value.name && value.size) {
+      // If we have only one field in the form, it's probably that field
+      if (form.form_fields.length === 1) {
+        return form.form_fields[0].label || form.form_fields[0].name || "Field";
+      }
+    }
+
+    // Fallback: return a shortened version of the ID
+    return `Field (${fieldId.slice(0, 8)}...)`;
+  };
+  const getFieldType = (fieldId: string): string => {
+    if (formLoading || !form?.form_fields) {
+      return "text";
+    }
+
+    // First try direct ID match
+    const directMatch = form.form_fields.find(
+      (f: FormField) => f.id === fieldId
+    );
+    if (directMatch) {
+      return directMatch.field_type || "text";
+    }
+
+    // If no direct match, try to infer based on the value
+    if (submission) {
+      const fieldValue = submission.response_data[fieldId];
+
+      // Check if it's a file field by examining the value structure
+      if (fieldValue && typeof fieldValue === "object") {
+        if (
+          Array.isArray(fieldValue) &&
+          fieldValue.length > 0 &&
+          fieldValue[0]?.name
+        ) {
+          return "file";
+        }
+        if (fieldValue.name && (fieldValue.size || fieldValue.type)) {
+          return "file";
+        }
+        if (fieldValue.files && Array.isArray(fieldValue.files)) {
+          return "file";
+        }
+      }
+
+      // Check for JSON string containing file data
+      if (typeof fieldValue === "string") {
+        try {
+          const parsed = JSON.parse(fieldValue);
+          if (parsed.name && (parsed.size || parsed.type)) {
+            return "file";
+          }
+        } catch {
+          // Not JSON, continue with other checks
+        }
+
+        // Check if it looks like an email
+        if (fieldValue.includes("@") && fieldValue.includes(".")) {
+          return "email";
+        }
+
+        // Check if it looks like a phone number
+        if (/^\+?[\d\s\-\(\)]+$/.test(fieldValue)) {
+          return "phone";
+        }
+
+        // Check if it looks like a URL
+        if (
+          fieldValue.startsWith("http://") ||
+          fieldValue.startsWith("https://")
+        ) {
+          return "url";
+        }
+      }
+
+      // Check for boolean values
+      if (typeof fieldValue === "boolean") {
+        return "checkbox";
+      }
+    }
+
+    return "text";
+  };
+  const formatFieldValue = (
+    value: any,
+    fieldType: string,
+    fieldId: string
+  ): React.ReactNode => {
+    if (value === null || value === undefined) {
+      return <span className="text-[#717171] italic">No response</span>;
+    }
+
+    // Handle file fields using the improved formatter
+    const isFileField = (val: any): boolean => {
+      if (typeof val === "object" && val !== null) {
+        // Check if it's an array of file objects
+        if (Array.isArray(val) && val.length > 0 && val[0]?.name) return true;
+        // Check if it's a single file object
+        if (val.name && (val.size || val.type)) return true;
+        // Check if it has a files property
+        if (val.files && Array.isArray(val.files)) return true;
+      }
+      // Check if it's a JSON string containing file data
+      if (typeof val === "string") {
+        try {
+          const parsed = JSON.parse(val);
+          if (Array.isArray(parsed) && parsed.length > 0 && parsed[0]?.name)
+            return true;
+          if (parsed.files && Array.isArray(parsed.files)) return true;
+          if (parsed.name && (parsed.size || parsed.type)) return true;
+        } catch {
+          // Not JSON, continue
+        }
+      }
+      return false;
+    };
+
+    if (fieldType === "file" || isFileField(value)) {
+      const files = FileAnalyticsFormatter.formatFileValue(
+        value,
+        fieldId,
+        formId
+      );
+
+      if (files.length === 0) {
+        return <span className="text-[#717171] italic">No files</span>;
+      }
+
+      if (files.length === 1) {
+        const file = files[0];
         return (
           <div className="bg-gray-50 p-3 rounded border">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center">
-                📎
+                {file.isImage ? (
+                  <Image className="w-4 h-4 text-blue-600" />
+                ) : (
+                  <FileText className="w-4 h-4 text-gray-600" />
+                )}
               </div>
               <div>
-                <div className="font-medium">{value.name}</div>
+                <div className="font-medium">{file.fileName}</div>
                 <div className="text-xs text-[#717171]">
-                  {(value.size / 1024).toFixed(1)} KB
+                  {file.fileSize} • {file.fileType}
                 </div>
               </div>
             </div>
-            {value.url && (
+            {file.downloadUrl && (
               <a
-                href={value.url}
+                href={file.downloadUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-600 hover:underline text-sm"
+                className="text-blue-600 hover:underline text-sm flex items-center gap-1"
               >
-                View file
+                <Download className="w-3 h-3" />
+                Download file
               </a>
+            )}
+            {file.previewUrl && (
+              <div className="mt-2">
+                <img
+                  src={file.previewUrl}
+                  alt={file.fileName}
+                  className="max-w-full h-auto max-h-32 rounded border object-contain"
+                  onError={(e) => {
+                    // Hide image if it fails to load
+                    e.currentTarget.style.display = "none";
+                  }}
+                />
+              </div>
             )}
           </div>
         );
       }
 
-      // Handle other objects
+      // Multiple files
+      return (
+        <div className="space-y-2">
+          {files.map((file, index) => (
+            <div key={index} className="bg-gray-50 p-3 rounded border">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center">
+                  {file.isImage ? (
+                    <Image className="w-4 h-4 text-blue-600" />
+                  ) : (
+                    <FileText className="w-4 h-4 text-gray-600" />
+                  )}
+                </div>
+                <div>
+                  <div className="font-medium">{file.fileName}</div>
+                  <div className="text-xs text-[#717171]">
+                    {file.fileSize} • {file.fileType}
+                  </div>
+                </div>
+              </div>
+              {file.downloadUrl && (
+                <a
+                  href={file.downloadUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline text-sm flex items-center gap-1"
+                >
+                  <Download className="w-3 h-3" />
+                  Download file
+                </a>
+              )}
+              {file.previewUrl && (
+                <div className="mt-2">
+                  <img
+                    src={file.previewUrl}
+                    alt={file.fileName}
+                    className="max-w-full h-auto max-h-32 rounded border object-contain"
+                    onError={(e) => {
+                      // Hide image if it fails to load
+                      e.currentTarget.style.display = "none";
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    // Handle arrays (checkboxes, multi-select, etc.) but not file arrays
+    if (Array.isArray(value)) {
+      if (value.length === 0) {
+        return <span className="text-[#717171] italic">No selections</span>;
+      }
+
+      return (
+        <div className="space-y-1">
+          {value.map((item, index) => (
+            <div key={index} className="flex items-center gap-2">
+              <span className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></span>
+              <span>
+                {typeof item === "object" ? JSON.stringify(item) : String(item)}
+              </span>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    // Handle other objects (but not files)
+    if (typeof value === "object") {
       return (
         <div className="bg-gray-50 p-3 rounded border">
           <details className="cursor-pointer">
@@ -265,14 +460,18 @@ export default function SubmissionDetailsPage() {
           {value}
         </a>
       );
-    } // Handle phone numbers
+    }
+
+    // Handle phone numbers
     if (fieldType === "phone" || fieldType === "tel") {
       return (
         <a href={`tel:${value}`} className="text-blue-500 hover:underline">
           {String(value)}
         </a>
       );
-    } // Handle date fields
+    }
+
+    // Handle date fields
     if (fieldType === "date" && typeof value === "string") {
       try {
         const date = new Date(value);
@@ -460,10 +659,14 @@ export default function SubmissionDetailsPage() {
                             >
                               {getFieldType(fieldId)}
                             </Badge>
-                          </div>
+                          </div>{" "}
                           <div className="p-3 bg-white rounded-lg border min-h-[44px] flex items-start">
                             <div className="w-full">
-                              {formatFieldValue(value, getFieldType(fieldId))}
+                              {formatFieldValue(
+                                value,
+                                getFieldType(fieldId),
+                                fieldId
+                              )}
                             </div>
                           </div>
                         </div>

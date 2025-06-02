@@ -48,7 +48,10 @@ import {
   Monitor,
   Tablet,
   X,
+  FileText,
+  Image,
 } from "lucide-react";
+import { FileAnalyticsFormatter } from "@/lib/utils/fileAnalyticsFormatter";
 import {
   Table,
   TableBody,
@@ -296,10 +299,126 @@ export default function FormAnalyticsPage() {
         );
         return form.form_fields[0].label || form.form_fields[0].name || "Field";
       }
+    } // Fallback: return a shortened version of the ID
+    return `Field (${fieldId.slice(0, 8)}...)`;
+  };
+
+  // Helper function to format field values for analytics display
+  const formatFieldValueForAnalytics = (key: string, value: any) => {
+    if (!value) return "No data";
+
+    // Check if this is a file field by examining the value structure
+    const isFileField = (val: any): boolean => {
+      if (typeof val === "object" && val !== null) {
+        // Check if it's an array of file objects
+        if (Array.isArray(val) && val.length > 0 && val[0].name) return true;
+        // Check if it's a single file object
+        if (val.name && (val.size || val.type)) return true;
+        // Check if it has a files property
+        if (val.files && Array.isArray(val.files)) return true;
+      }
+      // Check if it's a JSON string containing file data
+      if (typeof val === "string") {
+        try {
+          const parsed = JSON.parse(val);
+          if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].name)
+            return true;
+          if (parsed.files && Array.isArray(parsed.files)) return true;
+          if (parsed.name && (parsed.size || parsed.type)) return true;
+        } catch {
+          // Not JSON, continue
+        }
+      }
+      return false;
+    };
+
+    if (isFileField(value)) {
+      const files = FileAnalyticsFormatter.formatFileValue(
+        value,
+        key,
+        formId as string
+      );
+
+      if (files.length === 0) {
+        return <span className="text-gray-500 italic">No files</span>;
+      }
+
+      if (files.length === 1) {
+        const file = files[0];
+        return (
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              {file.isImage ? (
+                <Image className="w-3 h-3 text-blue-500" />
+              ) : (
+                <FileText className="w-3 h-3 text-gray-500" />
+              )}
+              <span className="font-medium">{file.fileName}</span>
+              <span className="text-xs text-gray-500">({file.fileSize})</span>
+            </div>
+            {file.downloadUrl && (
+              <a
+                href={file.downloadUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1"
+              >
+                <Download className="w-3 h-3" />
+                Download
+              </a>
+            )}
+          </div>
+        );
+      }
+
+      // Multiple files
+      const summary = FileAnalyticsFormatter.generateFileSummary(files);
+      return (
+        <details className="cursor-pointer">
+          <summary className="text-sm text-blue-600 hover:text-blue-800">
+            {summary}
+          </summary>
+          <div className="mt-2 space-y-2">
+            {files.map((file, index) => (
+              <div key={index} className="flex items-center gap-2 text-xs">
+                {file.isImage ? (
+                  <Image className="w-3 h-3 text-blue-500" />
+                ) : (
+                  <FileText className="w-3 h-3 text-gray-500" />
+                )}
+                <span className="font-medium">{file.fileName}</span>
+                <span className="text-gray-500">({file.fileSize})</span>
+                {file.downloadUrl && (
+                  <a
+                    href={file.downloadUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-800"
+                  >
+                    <Download className="w-3 h-3" />
+                  </a>
+                )}
+              </div>
+            ))}
+          </div>
+        </details>
+      );
     }
 
-    // Fallback: return a shortened version of the ID
-    return `Field (${fieldId.slice(0, 8)}...)`;
+    // Handle other field types
+    if (typeof value === "object") {
+      return (
+        <span className="text-gray-600 text-xs">{JSON.stringify(value)}</span>
+      );
+    }
+
+    // Handle long text values
+    const stringValue = String(value);
+    if (stringValue.length > 50) {
+      return <span title={stringValue}>{stringValue.slice(0, 50)}...</span>;
+    }
+
+    return stringValue;
   };
 
   // Add this useEffect to debug the data structure
@@ -546,11 +665,10 @@ export default function FormAnalyticsPage() {
                               >
                                 <span className="font-medium text-[#2D2D2D] ">
                                   {getFieldLabel(key)}:
-                                </span>
+                                </span>{" "}
                                 <span className="text-[#717171] break-words flex-1">
-                                  {typeof value === "object"
-                                    ? JSON.stringify(value, null, 2)
-                                    : String(value) || "(empty)"}
+                                  {formatFieldValueForAnalytics(key, value) ||
+                                    "(empty)"}
                                 </span>
                               </div>
                             )
@@ -943,7 +1061,7 @@ export default function FormAnalyticsPage() {
                               <summary className="text-sm text-blue-600 hover:text-blue-800">
                                 {Object.keys(response.response_data).length}{" "}
                                 field(s)
-                              </summary>
+                              </summary>{" "}
                               <div className="mt-2 space-y-1 text-xs max-h-40 overflow-y-auto">
                                 {Object.entries(response.response_data).map(
                                   ([key, value]) => (
@@ -954,13 +1072,12 @@ export default function FormAnalyticsPage() {
                                       <span className="font-medium text-[#2D2D2D] break-words">
                                         {getFieldLabel(key)}:
                                       </span>
-                                      <span className="ml-1 text-[#717171] break-words">
-                                        {typeof value === "object"
-                                          ? JSON.stringify(value)
-                                          : String(value).length > 50
-                                            ? String(value).slice(0, 50) + "..."
-                                            : String(value)}
-                                      </span>
+                                      <div className="ml-1 text-[#717171] break-words">
+                                        {formatFieldValueForAnalytics(
+                                          key,
+                                          value
+                                        )}
+                                      </div>
                                     </div>
                                   )
                                 )}

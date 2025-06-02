@@ -58,18 +58,39 @@ export function FileUploadComponent({
       // Check file count
       const totalFiles = state.uploadedFiles.length + files.length;
       if (options.maxFiles && totalFiles > options.maxFiles) {
-        return `Maximum ${options.maxFiles} file(s) allowed`;
+        return `Maximum ${options.maxFiles} file(s) allowed. You can upload ${options.maxFiles - state.uploadedFiles.length} more file(s).`;
       }
 
       // Check file sizes and types
       for (const file of files) {
+        // Check if file is empty
+        if (file.size === 0) {
+          return `File "${file.name}" is empty or corrupted. Please select a valid file.`;
+        }
+
+        // Check file size with better messaging
         if (options.maxFileSize) {
           const maxSizeBytes = options.maxFileSize * 1024 * 1024;
-          if (file.size > maxSizeBytes) {
-            return `File "${file.name}" exceeds maximum size of ${options.maxFileSize}MB`;
+          const isImage = file.type.startsWith("image/");
+          const compressionEnabled = options.compressImages;
+
+          // For images with compression, allow larger files initially
+          const sizeLimit =
+            isImage && compressionEnabled
+              ? maxSizeBytes * 3 // Allow 3x for compressible images
+              : maxSizeBytes;
+
+          if (file.size > sizeLimit) {
+            const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+            if (isImage && compressionEnabled) {
+              return `Image "${file.name}" is too large (${fileSizeMB}MB). Even with compression, it likely exceeds the ${options.maxFileSize}MB limit. Please use a smaller image.`;
+            } else {
+              return `File "${file.name}" is too large (${fileSizeMB}MB). Maximum size allowed is ${options.maxFileSize}MB.`;
+            }
           }
         }
 
+        // Check file type with better messaging
         if (options.allowedTypes && options.allowedTypes.length > 0) {
           const fileExtension = file.name.split(".").pop()?.toLowerCase();
           const mimeType = file.type.toLowerCase();
@@ -82,7 +103,7 @@ export function FileUploadComponent({
           );
 
           if (!isAllowed) {
-            return `File type not allowed for "${file.name}". Supported types: ${options.allowedTypes.join(", ")}`;
+            return `File "${file.name}" has an unsupported file type (.${fileExtension || "unknown"}). Allowed types: ${options.allowedTypes.join(", ")}`;
           }
         }
       }
@@ -143,8 +164,41 @@ export function FileUploadComponent({
           updateState({ uploadProgress: 0 });
         }, 1000);
       } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : "Upload failed";
+        let errorMessage = "Upload failed";
+
+        if (error instanceof Error) {
+          // Handle specific error messages from the service
+          if (
+            error.message.includes("Network error") ||
+            error.message.includes("Failed to fetch")
+          ) {
+            errorMessage =
+              "Network error. Please check your internet connection and try again.";
+          } else if (
+            error.message.includes("timeout") ||
+            error.message.includes("timed out")
+          ) {
+            errorMessage =
+              "Upload timed out. Please try again with a smaller file or check your connection.";
+          } else if (error.message.includes("too large")) {
+            errorMessage = error.message; // Use the detailed size error message
+          } else if (
+            error.message.includes("File type") ||
+            error.message.includes("not allowed")
+          ) {
+            errorMessage = error.message; // Use the detailed type error message
+          } else if (error.message.includes("Server temporarily unavailable")) {
+            errorMessage =
+              "Upload service is temporarily unavailable. Please try again in a few minutes.";
+          } else if (error.message.includes("quota exceeded")) {
+            errorMessage =
+              "Storage quota exceeded. Please contact support or try uploading smaller files.";
+          } else if (error.message.length > 5) {
+            // Use the error message if it's meaningful
+            errorMessage = error.message;
+          }
+        }
+
         updateState({
           error: errorMessage,
           isUploading: false,
@@ -177,7 +231,29 @@ export function FileUploadComponent({
         updateState({ uploadedFiles: newUploadedFiles });
         onChange?.(newUploadedFiles);
       } catch (error) {
-        updateState({ error: "Failed to remove file" });
+        let errorMessage = "Failed to remove file";
+
+        if (error instanceof Error) {
+          if (
+            error.message.includes("Network") ||
+            error.message.includes("Failed to fetch")
+          ) {
+            errorMessage =
+              "Network error while removing file. Please try again.";
+          } else if (error.message.includes("not found")) {
+            // File doesn't exist in storage, remove it from the list anyway
+            const newUploadedFiles = state.uploadedFiles.filter(
+              (f) => f.id !== fileToRemove.id
+            );
+            updateState({ uploadedFiles: newUploadedFiles });
+            onChange?.(newUploadedFiles);
+            return; // Don't show error for already deleted files
+          } else if (error.message.length > 5) {
+            errorMessage = error.message;
+          }
+        }
+
+        updateState({ error: errorMessage });
       }
     },
     [disabled, state.uploadedFiles, onChange, updateState]

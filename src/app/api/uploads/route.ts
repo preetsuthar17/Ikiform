@@ -55,6 +55,7 @@ export async function POST(request: NextRequest) {
     const file = formData.get("file") as File;
     const formId = formData.get("formId") as string;
     const fieldId = formData.get("fieldId") as string;
+    const maxFileSizeStr = formData.get("maxFileSize") as string;
 
     if (!file) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
@@ -67,12 +68,37 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate file size (max 10MB by default)
-    const maxSize = 10 * 1024 * 1024; // 10MB
-    if (file.size > maxSize) {
+    // Determine max file size (use provided limit or default to 10MB)
+    const maxFileSize = maxFileSizeStr ? parseFloat(maxFileSizeStr) : 10;
+    const maxSizeBytes = maxFileSize * 1024 * 1024;
+
+    // Validate file size with better error messages
+    if (file.size > maxSizeBytes) {
+      const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
       return NextResponse.json(
-        { error: "File size exceeds limit" },
+        {
+          error: `File "${file.name}" is too large (${fileSizeMB}MB). Maximum size allowed is ${maxFileSize}MB.`,
+        },
         { status: 400 }
+      );
+    }
+
+    // Validate file exists and has content
+    if (file.size === 0) {
+      return NextResponse.json(
+        { error: `File "${file.name}" is empty or corrupted.` },
+        { status: 400 }
+      );
+    }
+
+    // Additional server-side validation for very large files
+    const serverMaxSize = 50 * 1024 * 1024; // 50MB absolute server limit
+    if (file.size > serverMaxSize) {
+      return NextResponse.json(
+        {
+          error: "File too large for server processing. Maximum 50MB allowed.",
+        },
+        { status: 413 }
       );
     }
 
@@ -86,8 +112,44 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(uploadedFile);
   } catch (error) {
     console.error("File upload error:", error);
+
+    // Handle specific Supabase errors
+    if (error instanceof Error) {
+      if (error.message.includes("File size too large")) {
+        return NextResponse.json(
+          {
+            error: "File is too large for storage. Please use a smaller file.",
+          },
+          { status: 413 }
+        );
+      }
+      if (error.message.includes("Invalid file type")) {
+        return NextResponse.json(
+          { error: "File type not supported by storage system." },
+          { status: 400 }
+        );
+      }
+      if (error.message.includes("Storage quota exceeded")) {
+        return NextResponse.json(
+          { error: "Storage quota exceeded. Please contact support." },
+          { status: 507 }
+        );
+      }
+      if (
+        error.message.includes("Network") ||
+        error.message.includes("timeout")
+      ) {
+        return NextResponse.json(
+          {
+            error: "Storage service temporarily unavailable. Please try again.",
+          },
+          { status: 503 }
+        );
+      }
+    }
+
     return NextResponse.json(
-      { error: "Failed to upload file" },
+      { error: "Failed to upload file. Please try again later." },
       { status: 500 }
     );
   }

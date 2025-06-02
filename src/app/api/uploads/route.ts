@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
     if (!formId || !fieldId) {
       return NextResponse.json(
         { error: "Form ID and Field ID are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
         {
           error: `File "${file.name}" is too large (${fileSizeMB}MB). Maximum size allowed is ${maxFileSize}MB.`,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
     if (file.size === 0) {
       return NextResponse.json(
         { error: `File "${file.name}" is empty or corrupted.` },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
         {
           error: "File too large for server processing. Maximum 50MB allowed.",
         },
-        { status: 413 }
+        { status: 413 },
       );
     }
 
@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
     const uploadedFile = await supabaseStorageService.uploadFile(
       file,
       formId,
-      fieldId
+      fieldId,
     );
 
     return NextResponse.json(uploadedFile);
@@ -120,19 +120,19 @@ export async function POST(request: NextRequest) {
           {
             error: "File is too large for storage. Please use a smaller file.",
           },
-          { status: 413 }
+          { status: 413 },
         );
       }
       if (error.message.includes("Invalid file type")) {
         return NextResponse.json(
           { error: "File type not supported by storage system." },
-          { status: 400 }
+          { status: 400 },
         );
       }
       if (error.message.includes("Storage quota exceeded")) {
         return NextResponse.json(
           { error: "Storage quota exceeded. Please contact support." },
-          { status: 507 }
+          { status: 507 },
         );
       }
       if (
@@ -143,14 +143,14 @@ export async function POST(request: NextRequest) {
           {
             error: "Storage service temporarily unavailable. Please try again.",
           },
-          { status: 503 }
+          { status: 503 },
         );
       }
     }
 
     return NextResponse.json(
       { error: "Failed to upload file. Please try again later." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -175,7 +175,7 @@ export async function DELETE(request: NextRequest) {
     if (!filePath) {
       return NextResponse.json(
         { error: "File path is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -187,7 +187,7 @@ export async function DELETE(request: NextRequest) {
     console.error("File deletion error:", error);
     return NextResponse.json(
       { error: "Failed to delete file" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -20,7 +20,7 @@ export class SupabaseStorageService {
   async uploadFile(
     file: File,
     formId: string,
-    fieldId: string
+    fieldId: string,
   ): Promise<UploadedFile> {
     const supabase = await createClient();
 
@@ -86,7 +86,7 @@ export class SupabaseStorageService {
    */
   async getSignedUrl(
     storagePath: string,
-    expiresIn: number = 3600
+    expiresIn: number = 3600,
   ): Promise<string> {
     const supabase = await createClient();
 
@@ -153,7 +153,7 @@ export class SupabaseStorageService {
     }
 
     const bucketExists = buckets.some(
-      (bucket) => bucket.name === this.bucketName
+      (bucket) => bucket.name === this.bucketName,
     );
 
     if (!bucketExists) {
@@ -173,7 +173,7 @@ export class SupabaseStorageService {
             "text/csv",
           ],
           fileSizeLimit: 10485760, // 10MB limit
-        }
+        },
       );
 
       if (createError) {

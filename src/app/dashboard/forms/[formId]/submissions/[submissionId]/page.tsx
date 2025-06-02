@@ -48,7 +48,7 @@ export default function SubmissionDetailsPage() {
 
         // Find the specific submission by ID
         const foundSubmission = responses.find(
-          (response) => response.id === submissionId
+          (response) => response.id === submissionId,
         );
 
         if (!foundSubmission) {
@@ -59,7 +59,7 @@ export default function SubmissionDetailsPage() {
       } catch (err) {
         console.error("Error fetching submission:", err);
         setError(
-          err instanceof Error ? err.message : "Failed to fetch submission"
+          err instanceof Error ? err.message : "Failed to fetch submission",
         );
       } finally {
         setLoading(false);
@@ -116,7 +116,7 @@ export default function SubmissionDetailsPage() {
 
     // First try direct ID match
     const directMatch = form.form_fields.find(
-      (f: FormField) => f.id === fieldId
+      (f: FormField) => f.id === fieldId,
     );
     if (directMatch) {
       return directMatch.label || directMatch.name || fieldId;
@@ -131,7 +131,7 @@ export default function SubmissionDetailsPage() {
         // Check if it looks like an email
         if (fieldValue.includes("@") && fieldValue.includes(".")) {
           const emailField = form.form_fields.find(
-            (f: FormField) => f.field_type === "email"
+            (f: FormField) => f.field_type === "email",
           );
           if (emailField) {
             return emailField.label || "Email";
@@ -141,7 +141,7 @@ export default function SubmissionDetailsPage() {
         // Check if it looks like a phone number
         if (/^\+?[\d\s\-\(\)]+$/.test(fieldValue)) {
           const phoneField = form.form_fields.find(
-            (f: FormField) => f.field_type === "phone"
+            (f: FormField) => f.field_type === "phone",
           );
           if (phoneField) {
             return phoneField.label || "Phone";
@@ -154,7 +154,7 @@ export default function SubmissionDetailsPage() {
           fieldValue.startsWith("https://")
         ) {
           const urlField = form.form_fields.find(
-            (f: FormField) => f.field_type === "url"
+            (f: FormField) => f.field_type === "url",
           );
           if (urlField) {
             return urlField.label || "URL";
@@ -178,7 +178,7 @@ export default function SubmissionDetailsPage() {
 
     // First try direct ID match
     const directMatch = form.form_fields.find(
-      (f: FormField) => f.id === fieldId
+      (f: FormField) => f.id === fieldId,
     );
     if (directMatch) {
       return directMatch.field_type || "text";
@@ -246,7 +246,7 @@ export default function SubmissionDetailsPage() {
   const formatFieldValue = (
     value: any,
     fieldType: string,
-    fieldId: string
+    fieldId: string,
   ): React.ReactNode => {
     if (value === null || value === undefined) {
       return <span className="text-[#717171] italic">No response</span>;
@@ -281,7 +281,7 @@ export default function SubmissionDetailsPage() {
       const files = FileAnalyticsFormatter.formatFileValue(
         value,
         fieldId,
-        formId
+        formId,
       );
 
       if (files.length === 0) {
@@ -595,7 +595,7 @@ export default function SubmissionDetailsPage() {
               {form?.title} •{" "}
               {format(
                 new Date(submission.submitted_at),
-                "MMM dd, yyyy 'at' HH:mm"
+                "MMM dd, yyyy 'at' HH:mm",
               )}
             </p>
           </div>
@@ -665,7 +665,7 @@ export default function SubmissionDetailsPage() {
                               {formatFieldValue(
                                 value,
                                 getFieldType(fieldId),
-                                fieldId
+                                fieldId,
                               )}
                             </div>
                           </div>
@@ -674,7 +674,7 @@ export default function SubmissionDetailsPage() {
                           Object.entries(submission.response_data).length -
                             1 && <Separator className="mt-6" />}
                       </div>
-                    )
+                    ),
                   )
                 ) : (
                   <div className="text-center py-8">
@@ -710,7 +710,7 @@ export default function SubmissionDetailsPage() {
                     <div>
                       {format(
                         new Date(submission.submitted_at),
-                        "MMM dd, yyyy 'at' HH:mm"
+                        "MMM dd, yyyy 'at' HH:mm",
                       )}
                     </div>
                   </div>

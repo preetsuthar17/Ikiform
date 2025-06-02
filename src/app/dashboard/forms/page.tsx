@@ -61,7 +61,7 @@ export default function FormsPage() {
     (form) =>
       form.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (form.description &&
-        form.description.toLowerCase().includes(searchQuery.toLowerCase()))
+        form.description.toLowerCase().includes(searchQuery.toLowerCase())),
   );
 
   const handleDeleteForm = async (form: Form) => {

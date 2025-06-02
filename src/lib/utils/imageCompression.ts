@@ -7,7 +7,7 @@ export interface CompressionOptions {
   maxWidth?: number;
   maxHeight?: number;
   quality?: number; // 0.1 to 1.0, default 0.9 for high quality
-  format?: 'jpeg' | 'png' | 'webp';
+  format?: "jpeg" | "png" | "webp";
   maintainAspectRatio?: boolean;
 }
 
@@ -24,28 +24,28 @@ export class ImageCompression {
    */
   static async compressImage(
     file: File,
-    options: CompressionOptions = {}
+    options: CompressionOptions = {},
   ): Promise<CompressionResult> {
     const {
       maxWidth = 1920,
       maxHeight = 1080,
       quality = 0.9, // High quality default
-      format = 'jpeg',
+      format = "jpeg",
       maintainAspectRatio = true,
     } = options;
 
     // Check if file is an image
-    if (!file.type.startsWith('image/')) {
-      throw new Error('File is not an image');
+    if (!file.type.startsWith("image/")) {
+      throw new Error("File is not an image");
     }
 
     return new Promise((resolve, reject) => {
       const img = new Image();
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
 
       if (!ctx) {
-        reject(new Error('Canvas context not available'));
+        reject(new Error("Canvas context not available"));
         return;
       }
 
@@ -57,7 +57,7 @@ export class ImageCompression {
             img.height,
             maxWidth,
             maxHeight,
-            maintainAspectRatio
+            maintainAspectRatio,
           );
 
           // Set canvas dimensions
@@ -66,7 +66,7 @@ export class ImageCompression {
 
           // Enable high-quality image rendering
           ctx.imageSmoothingEnabled = true;
-          ctx.imageSmoothingQuality = 'high';
+          ctx.imageSmoothingQuality = "high";
 
           // Draw the image
           ctx.drawImage(img, 0, 0, width, height);
@@ -76,7 +76,7 @@ export class ImageCompression {
           canvas.toBlob(
             (blob) => {
               if (!blob) {
-                reject(new Error('Failed to compress image'));
+                reject(new Error("Failed to compress image"));
                 return;
               }
 
@@ -96,7 +96,7 @@ export class ImageCompression {
               });
             },
             mimeType,
-            quality
+            quality,
           );
         } catch (error) {
           reject(error);
@@ -104,7 +104,7 @@ export class ImageCompression {
       };
 
       img.onerror = () => {
-        reject(new Error('Failed to load image'));
+        reject(new Error("Failed to load image"));
       };
 
       // Load the image
@@ -120,7 +120,7 @@ export class ImageCompression {
     originalHeight: number,
     maxWidth: number,
     maxHeight: number,
-    maintainAspectRatio: boolean
+    maintainAspectRatio: boolean,
   ): { width: number; height: number } {
     if (!maintainAspectRatio) {
       return {
@@ -154,21 +154,24 @@ export class ImageCompression {
    */
   private static getMimeType(format: string): string {
     switch (format) {
-      case 'png':
-        return 'image/png';
-      case 'webp':
-        return 'image/webp';
-      case 'jpeg':
+      case "png":
+        return "image/png";
+      case "webp":
+        return "image/webp";
+      case "jpeg":
       default:
-        return 'image/jpeg';
+        return "image/jpeg";
     }
   }
 
   /**
    * Check if a file should be compressed
    */
-  static shouldCompress(file: File, minSizeThreshold: number = 100 * 1024): boolean {
-    return file.type.startsWith('image/') && file.size > minSizeThreshold;
+  static shouldCompress(
+    file: File,
+    minSizeThreshold: number = 100 * 1024,
+  ): boolean {
+    return file.type.startsWith("image/") && file.size > minSizeThreshold;
   }
 
   /**
@@ -176,9 +179,9 @@ export class ImageCompression {
    */
   static async compressImages(
     files: File[],
-    options: CompressionOptions = {}
+    options: CompressionOptions = {},
   ): Promise<CompressionResult[]> {
-    const compressionPromises = files.map(file => {
+    const compressionPromises = files.map((file) => {
       if (this.shouldCompress(file)) {
         return this.compressImage(file, options);
       } else {

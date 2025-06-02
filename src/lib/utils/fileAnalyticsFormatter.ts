@@ -18,7 +18,7 @@ export class FileAnalyticsFormatter {
   static formatFileValue(
     value: any,
     fieldId: string,
-    formId: string
+    formId: string,
   ): FileDisplayInfo[] {
     if (!value) return [];
 
@@ -55,7 +55,7 @@ export class FileAnalyticsFormatter {
   private static formatSingleFile(
     file: any,
     fieldId: string,
-    formId: string
+    formId: string,
   ): FileDisplayInfo {
     const fileName = file.name || file.fileName || "Unknown file";
     const fileSize = this.formatFileSize(file.size);
@@ -98,7 +98,7 @@ export class FileAnalyticsFormatter {
   private static getFileDownloadUrl(
     formId: string,
     fieldId: string,
-    storedFileName: string
+    storedFileName: string,
   ): string {
     return `/api/uploads/${formId}/${fieldId}/${encodeURIComponent(storedFileName)}`;
   }

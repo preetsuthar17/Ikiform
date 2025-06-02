@@ -1,4 +1,5 @@
 onlyBuiltDependencies:
   - "@tailwindcss/oxide"
+  - core-js
   - sharp
   - unrs-resolver

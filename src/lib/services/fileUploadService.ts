@@ -28,7 +28,7 @@ export class FileUploadService {
     file: File,
     formId: string,
     fieldId: string,
-    options?: FileUploadOptions
+    options?: FileUploadOptions,
   ): Promise<UploadedFile> {
     // Pre-validation before any processing
     this.validateFileBeforeProcessing(file, options);
@@ -44,16 +44,16 @@ export class FileUploadService {
             quality: 0.9,
             maxWidth: 1920,
             maxHeight: 1080,
-          }
+          },
         );
         fileToUpload = compressionResult.file;
         console.log(
-          `Image compressed: ${file.name}, Original: ${(file.size / 1024).toFixed(1)}KB, Compressed: ${(compressionResult.compressedSize / 1024).toFixed(1)}KB (${compressionResult.compressionRatio.toFixed(1)}% reduction)`
+          `Image compressed: ${file.name}, Original: ${(file.size / 1024).toFixed(1)}KB, Compressed: ${(compressionResult.compressedSize / 1024).toFixed(1)}KB (${compressionResult.compressionRatio.toFixed(1)}% reduction)`,
         );
       } catch (error) {
         console.warn(
           "Image compression failed, uploading original file:",
-          error
+          error,
         );
         // Continue with original file if compression fails
       }
@@ -123,7 +123,7 @@ export class FileUploadService {
       if (error instanceof Error) {
         if (error.name === "AbortError" || error.message.includes("timeout")) {
           throw new Error(
-            "Upload timed out. The file might be too large or your connection is slow. Please try again."
+            "Upload timed out. The file might be too large or your connection is slow. Please try again.",
           );
         }
         if (
@@ -131,12 +131,12 @@ export class FileUploadService {
           error.message.includes("NetworkError")
         ) {
           throw new Error(
-            "Network error. Please check your internet connection and try again."
+            "Network error. Please check your internet connection and try again.",
           );
         }
         if (error.message.includes("File too large")) {
           throw new Error(
-            `File "${file.name}" is too large. Maximum size allowed is ${options?.maxFileSize || 10}MB.`
+            `File "${file.name}" is too large. Maximum size allowed is ${options?.maxFileSize || 10}MB.`,
           );
         }
         // Re-throw the error with the existing message if it's already user-friendly
@@ -144,7 +144,7 @@ export class FileUploadService {
       }
 
       throw new Error(
-        "Upload failed due to an unexpected error. Please try again."
+        "Upload failed due to an unexpected error. Please try again.",
       );
     }
   }
@@ -154,7 +154,7 @@ export class FileUploadService {
    */
   private static validateFileBeforeProcessing(
     file: File,
-    options?: FileUploadOptions
+    options?: FileUploadOptions,
   ): void {
     // Check if file exists and has content
     if (!file || file.size === 0) {
@@ -165,7 +165,7 @@ export class FileUploadService {
     if (!this.validateFileExtension(file)) {
       const extension = file.name.split(".").pop()?.toLowerCase() || "unknown";
       throw new Error(
-        `File "${file.name}" appears to be corrupted or has an incorrect extension. The file content doesn't match the .${extension} extension.`
+        `File "${file.name}" appears to be corrupted or has an incorrect extension. The file content doesn't match the .${extension} extension.`,
       );
     }
 
@@ -178,12 +178,12 @@ export class FileUploadService {
         (type) =>
           type.toLowerCase() === `.${fileExtension}` ||
           type.toLowerCase() === fileExtension ||
-          mimeType.startsWith(type.toLowerCase().replace("*", ""))
+          mimeType.startsWith(type.toLowerCase().replace("*", "")),
       );
 
       if (!isAllowed) {
         throw new Error(
-          `File type "${fileExtension || "unknown"}" is not allowed. Supported types: ${options.allowedTypes.join(", ")}`
+          `File type "${fileExtension || "unknown"}" is not allowed. Supported types: ${options.allowedTypes.join(", ")}`,
         );
       }
     }
@@ -203,14 +203,14 @@ export class FileUploadService {
           file.size > maxSizeBytes * 3
         ) {
           throw new Error(
-            `Image "${file.name}" is too large (${this.formatFileSize(file.size)}). Even with compression, it likely exceeds the maximum size of ${options.maxFileSize}MB. Please use a smaller image.`
+            `Image "${file.name}" is too large (${this.formatFileSize(file.size)}). Even with compression, it likely exceeds the maximum size of ${options.maxFileSize}MB. Please use a smaller image.`,
           );
         }
       } else {
         // For non-compressible files, enforce strict size limit
         if (file.size > maxSizeBytes) {
           throw new Error(
-            `File "${file.name}" is too large (${this.formatFileSize(file.size)}). Maximum size allowed is ${options.maxFileSize}MB.`
+            `File "${file.name}" is too large (${this.formatFileSize(file.size)}). Maximum size allowed is ${options.maxFileSize}MB.`,
           );
         }
       }
@@ -222,14 +222,14 @@ export class FileUploadService {
    */
   private static validateFileAfterProcessing(
     file: File,
-    options?: FileUploadOptions
+    options?: FileUploadOptions,
   ): void {
     // Final size check after compression
     if (options?.maxFileSize) {
       const maxSizeBytes = options.maxFileSize * 1024 * 1024;
       if (file.size > maxSizeBytes) {
         throw new Error(
-          `File "${file.name}" is still too large after compression (${this.formatFileSize(file.size)}). Maximum size allowed is ${options.maxFileSize}MB.`
+          `File "${file.name}" is still too large after compression (${this.formatFileSize(file.size)}). Maximum size allowed is ${options.maxFileSize}MB.`,
         );
       }
     }
@@ -242,12 +242,12 @@ export class FileUploadService {
     files: File[],
     formId: string,
     fieldId: string,
-    options?: FileUploadOptions
+    options?: FileUploadOptions,
   ): Promise<UploadedFile[]> {
     // Validate number of files
     if (options?.maxFiles && files.length > options.maxFiles) {
       throw new Error(
-        `Too many files selected. Maximum allowed: ${options.maxFiles}`
+        `Too many files selected. Maximum allowed: ${options.maxFiles}`,
       );
     }
 
@@ -286,7 +286,7 @@ export class FileUploadService {
         `/api/uploads?path=${encodeURIComponent(storagePath)}`,
         {
           method: "DELETE",
-        }
+        },
       );
 
       if (!response.ok) {
@@ -316,7 +316,7 @@ export class FileUploadService {
    * Get file info from URL
    */
   static getFileInfoFromUrl(
-    url: string
+    url: string,
   ): { name: string; path: string } | null {
     try {
       const urlObj = new URL(url);

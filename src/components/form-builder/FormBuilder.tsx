@@ -114,18 +114,18 @@ export function FormBuilder({
       setSelectedField(newField.id);
       toast.success("Field added successfully");
     },
-    [form?.id, fields]
+    [form?.id, fields],
   );
 
   const updateField = useCallback(
     (fieldId: string, updates: Partial<FormField>) => {
       setFields((prev) =>
         prev.map((field) =>
-          field.id === fieldId ? { ...field, ...updates } : field
-        )
+          field.id === fieldId ? { ...field, ...updates } : field,
+        ),
       );
     },
-    []
+    [],
   );
 
   const deleteField = useCallback(
@@ -136,7 +136,7 @@ export function FormBuilder({
       }
       toast.success("Field deleted");
     },
-    [selectedField]
+    [selectedField],
   );
 
   const moveField = useCallback((fromIndex: number, toIndex: number) => {
@@ -180,7 +180,7 @@ export function FormBuilder({
         toast.success("Field duplicated");
       }
     },
-    [fields]
+    [fields],
   ); // Save functionality
   const handleSave = useCallback(async () => {
     if (!form) return;
@@ -208,7 +208,7 @@ export function FormBuilder({
           window.history.replaceState(
             null,
             "",
-            `/dashboard/forms/${newForm.form.id}`
+            `/dashboard/forms/${newForm.form.id}`,
           );
         }
       }
@@ -264,7 +264,7 @@ export function FormBuilder({
             window.history.replaceState(
               null,
               "",
-              `/dashboard/forms/${newForm.form.id}`
+              `/dashboard/forms/${newForm.form.id}`,
             );
           }
         }
@@ -315,7 +315,7 @@ export function FormBuilder({
         setEditingTitle(false);
       }
     },
-    [form, updateForm]
+    [form, updateForm],
   );
   const handleTitleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -325,7 +325,7 @@ export function FormBuilder({
         setEditingTitle(false);
       }
     },
-    [handleTitleEdit]
+    [handleTitleEdit],
   );
 
   const selectedFieldData = selectedField

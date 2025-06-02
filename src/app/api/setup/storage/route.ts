@@ -21,14 +21,14 @@ export async function POST(request: NextRequest) {
           details: result.error,
           success: false,
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
   } catch (error) {
     console.error("Setup endpoint error:", error);
     return NextResponse.json(
       { error: "Setup failed", success: false },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

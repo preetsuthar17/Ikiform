@@ -1,14 +1,13 @@
-import type { Metadata } from "next";
-import { DM_Sans, Inter } from "next/font/google";
-
-import "./globals.css";
-
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import type { Metadata, Viewport } from "next";
+import { DM_Sans, Inter, JetBrains_Mono } from "next/font/google";
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+import "../../app/globals.css";
 
 import { Toaster } from "react-hot-toast";
 
 import { GoogleAnalytics } from "@next/third-parties/google";
+import Footer from "@/components/Footer";
 
 // Load Google Fonts with CSS variables
 const inter = Inter({
@@ -21,14 +20,30 @@ const dm_sans = DM_Sans({
   subsets: ["latin"],
 });
 
+const jetbrains_mono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["400", "500", "600", "700"],
+});
+
+export const viewport: Viewport = {
+  colorScheme: "light",
+  themeColor: "white",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
 // Metadata for SEO, social sharing, and PWA
 export const metadata: Metadata = {
   title: {
-    default: "Ikiform",
+    default: "Dashboard | Ikiform",
     template: "%s | Ikiform",
   },
   description:
-    "Create beautiful forms with Ikiform - the open-source alternative to Typeform and Google Forms. Build surveys, collect responses, and analyze data effortlessly.",
+    "Manage your forms, surveys, and questionnaires from your Ikiform dashboard. Create, edit, and analyze your form data.",
   applicationName: "Ikiform",
   authors: [{ name: "Ikiform Team", url: "https://ikiform.com" }],
   creator: "Ikiform",
@@ -40,22 +55,22 @@ export const metadata: Metadata = {
   },
   metadataBase: new URL("https://ikiform.com"),
   alternates: {
-    canonical: "/",
+    canonical: "/dashboard",
   },
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://ikiform.com",
+    url: "https://ikiform.com/dashboard",
     siteName: "Ikiform",
-    title: "Ikiform",
+    title: "Dashboard | Ikiform",
     description:
-      "Create beautiful, interactive forms with Ikiform - the open-source alternative to Typeform and Google Forms. Build surveys, collect responses, and analyze data effortlessly.",
+      "Manage your forms, surveys, and questionnaires from your Ikiform dashboard. Create, edit, and analyze your data.",
     images: [
       {
         url: "/og-banner.png",
         width: 1200,
         height: 630,
-        alt: "Ikiform",
+        alt: "Ikiform Dashboard",
         type: "image/png",
       },
     ],
@@ -64,16 +79,16 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     site: "@ikiform",
     creator: "@ikiform",
-    title: "Ikiform",
+    title: "Dashboard | Ikiform",
     description:
-      "Create beautiful, interactive forms with Ikiform - the open-source alternative to Typeform and Google Forms.",
+      "Manage your forms, surveys, and questionnaires from your Ikiform dashboard.",
     images: ["/og-banner.png"],
   },
   robots: {
-    index: true,
+    index: false,
     follow: true,
     googleBot: {
-      index: true,
+      index: false,
       follow: true,
       "max-video-preview": -1,
       "max-image-preview": "large",
@@ -83,41 +98,42 @@ export const metadata: Metadata = {
   icons: {
     icon: [{ url: "/favicon.ico" }],
   },
-  themeColor: [{ media: "(prefers-color-scheme: light)", color: "#ffffff" }],
-  viewport: "width=device-width, initial-scale=1, maximum-scale=5",
+
   keywords: [
-    "form builder",
-    "online forms",
-    "surveys",
-    "questionnaires",
-    "open source",
-    "typeform alternative",
-    "google forms alternative",
-    "form creator",
-    "survey tool",
-    "data collection",
-    "ikiform",
-    "form software",
-    "custom forms",
-    "interactive forms",
+    "ikiform dashboard",
+    "form management",
+    "survey dashboard",
     "form analytics",
+    "form builder",
+    "user dashboard",
   ],
   category: "technology",
   classification: "Business Software",
 };
 
-export default function RootLayout({
+export default async function DashboardLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+
+  if (error || !user) {
+    redirect("/auth/login");
+  }
+
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${dm_sans.variable} antialiased`}>
-        <Navbar />
+      <body
+        className={`${inter.variable} ${dm_sans.variable} ${jetbrains_mono.variable} antialiased font-inter`}
+      >
         <main className="min-h-screen">{children}</main>
         <Toaster position="top-center" />
-        <Footer />
       </body>
       <GoogleAnalytics gaId="G-35M26ZHKNE" />
     </html>

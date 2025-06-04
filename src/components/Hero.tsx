@@ -126,7 +126,7 @@ const Hero = () => {
         </form>
 
         {!countLoading && (
-          <p className="mt-4 text-gray-500 text-sm">
+          <p className="mt-4 text-green-500 text-sm">
             {waitlistCount.toLocaleString()} people have already joined the
             waitlist!
           </p>

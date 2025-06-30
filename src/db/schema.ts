@@ -25,17 +25,8 @@ export const postsTable = pgTable("posts_table", {
   updatedAt: timestamp("updated_at").notNull(),
 });
 
-export const waitlist = pgTable("waitlist", {
-  id: bigserial("id", { mode: "number" }).primaryKey(),
-  email: text("email").notNull().unique(),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
-});
-
 export type InsertUser = typeof usersTable.$inferInsert;
 export type SelectUser = typeof usersTable.$inferSelect;
 
 export type InsertPost = typeof postsTable.$inferInsert;
 export type SelectPost = typeof postsTable.$inferSelect;
-
-export type InsertWaitlist = typeof waitlist.$inferInsert;
-export type SelectWaitlist = typeof waitlist.$inferSelect;

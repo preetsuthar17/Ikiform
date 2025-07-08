@@ -10,28 +10,18 @@ const roadmapItems: RoadmapProps[] = [
     status: "completed",
   },
   {
-    title: "creating/customizing form",
-    description: "ability to create and design forms easily.",
-    status: "completed",
-  },
-  {
-    title: "sharing forms",
-    description: "options to share forms with others.",
-    status: "completed",
-  },
-  {
     title: "analytics",
     description: "view analytics and responses for forms.",
-    status: "inProgress",
-  },
-  {
-    title: "form customization",
-    description: "customize forms with themes, logic, and more.",
-    status: "notStarted",
+    status: "completed",
   },
   {
     title: "ai features",
     description: "integrate AI for form creations and analytics.",
+    status: "completed",
+  },
+  {
+    title: "form customization",
+    description: "customize forms with themes, logic, and more.",
     status: "notStarted",
   },
   {
